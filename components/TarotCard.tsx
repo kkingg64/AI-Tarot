@@ -3,7 +3,7 @@
  * @license
  * SPDX-License-Identifier: Apache-2.0
 */
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   SparklesIcon, 
   SunIcon, 
@@ -14,17 +14,18 @@ import {
   BeakerIcon, 
   ScaleIcon, 
   BoltIcon, 
-  GlobeAsiaAustraliaIcon 
+  GlobeAsiaAustraliaIcon
 } from '@heroicons/react/24/solid';
 
 export interface CardData {
   name: string;
-  id: string; // "0", "I", "II" or "1", "2"...
+  id: string; 
   colors: string;
   type: 'major' | 'minor';
   suit?: string;
   iconType: string;
   zhName?: string;
+  image?: string;
 }
 
 interface TarotCardProps {
@@ -32,10 +33,12 @@ interface TarotCardProps {
   isRevealed: boolean;
   isDrawing: boolean;
   isReversed?: boolean;
+  index?: number;
+  isSmall?: boolean; // For deck list view
 }
 
 const getIcon = (iconType: string) => {
-  const props = { className: "w-16 h-16 sm:w-24 sm:h-24 text-white/90 drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]" };
+  const props = { className: "w-12 h-12 sm:w-16 sm:h-16 text-white/90 drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]" };
   switch(iconType) {
     case 'sun': return <SunIcon {...props} className={props.className + " text-yellow-200"} />;
     case 'moon': return <MoonIcon {...props} className={props.className + " text-cyan-200"} />;
@@ -51,54 +54,93 @@ const getIcon = (iconType: string) => {
   }
 };
 
-export const TarotCard: React.FC<TarotCardProps> = ({ card, isRevealed, isDrawing, isReversed }) => {
+// Simplified Card Back for the Deck Strip
+export const CardBack: React.FC<{ small?: boolean, className?: string }> = ({ small, className = '' }) => (
+  <div className={`relative w-full h-full rounded-lg border border-white/10 bg-[#0a0a0a] shadow-lg overflow-hidden flex items-center justify-center group ${className}`}>
+     <div className="absolute inset-0 opacity-20" 
+        style={{
+          backgroundImage: `radial-gradient(circle at 50% 50%, #451a03 1px, transparent 1px)`, 
+          backgroundSize: small ? '10px 10px' : '20px 20px'
+        }}
+     ></div>
+     <div className={`absolute inset-${small ? '1' : '2'} border border-amber-900/30 rounded-md`}></div>
+     
+     <div className={`relative ${small ? 'w-8 h-8' : 'w-24 h-24'} rounded-full flex items-center justify-center bg-black/50 backdrop-blur-sm border border-amber-500/20`}>
+        {!small && (
+           <div className="absolute inset-0 rounded-full border border-amber-500/30 animate-[spin-slow_10s_linear_infinite]"></div>
+        )}
+        <SparklesIcon className={`${small ? 'w-4 h-4' : 'w-10 h-10'} text-amber-600/80`} />
+     </div>
+  </div>
+);
+
+export const TarotCard: React.FC<TarotCardProps> = ({ card, isRevealed, isDrawing, isReversed, index = 0 }) => {
+  const [imageError, setImageError] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+
+  useEffect(() => {
+    setImageError(false);
+    setImageLoaded(false);
+  }, [card]);
+
+  // If isDrawing is true, it means the card has been dealt. We apply the entrance animation.
   return (
-    <div className={`perspective-1000 w-64 h-96 sm:w-80 sm:h-[28rem] transition-all duration-[1500ms] ${isDrawing ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0'}`}>
+    <div 
+      className={`perspective-1000 w-48 h-80 sm:w-60 sm:h-96 ${isDrawing ? 'animate-deal' : 'opacity-0'}`}
+    >
       <div 
-        className={`relative w-full h-full duration-[1500ms] transform-style-3d transition-transform ${isRevealed ? 'rotate-y-180' : ''}`}
+        className={`relative w-full h-full duration-[1500ms] transform-style-3d transition-transform cubic-bezier(0.175, 0.885, 0.32, 1.275) ${isRevealed ? 'rotate-y-180' : ''}`}
       >
-        {/* CARD BACK */}
-        <div className="absolute inset-0 backface-hidden rounded-2xl border border-yellow-600/30 bg-zinc-950 shadow-2xl overflow-hidden flex items-center justify-center group">
-          <div className="absolute inset-3 border-2 border-dashed border-yellow-600/20 rounded-xl"></div>
-          {/* Intricate Pattern (CSS) */}
-          <div className="absolute inset-0 opacity-30" 
-            style={{
-               backgroundImage: 'radial-gradient(circle, #fbbf24 1px, transparent 1px)', 
-               backgroundSize: '24px 24px'
-            }}
-          ></div>
-          {/* Center Seal */}
-          <div className="relative w-32 h-32 border border-yellow-600/40 rounded-full flex items-center justify-center bg-black/50 backdrop-blur-sm">
-             <div className="absolute inset-0 rounded-full border border-yellow-600/20 animate-spin-slow"></div>
-             <SparklesIcon className="w-12 h-12 text-yellow-600/50" />
-          </div>
+        {/* === CARD BACK === */}
+        <div className="absolute inset-0 backface-hidden">
+            <CardBack />
         </div>
 
-        {/* CARD FRONT */}
+        {/* === CARD FRONT === */}
         <div 
-            className={`absolute inset-0 backface-hidden rotate-y-180 rounded-2xl overflow-hidden shadow-[0_0_50px_rgba(234,179,8,0.1)] bg-gradient-to-br ${card ? card.colors : 'from-zinc-800 to-zinc-900'} border border-white/10`}
+            className={`absolute inset-0 backface-hidden rotate-y-180 rounded-xl overflow-hidden shadow-[0_0_40px_rgba(0,0,0,0.8)] bg-zinc-900 border border-white/10 group`}
         >
-           {/* Card Frame */}
-           <div className="absolute inset-3 border border-white/20 rounded-xl flex flex-col items-center justify-between p-6">
-              {/* Top Number */}
-              <div className={`text-2xl font-mystic text-white/80 ${isReversed ? 'rotate-180' : ''}`}>
-                 {card?.id}
-              </div>
+           {/* REVEAL FLASH BURST */}
+           <div className={`absolute inset-0 z-50 pointer-events-none bg-white mix-blend-overlay transition-opacity duration-1000 ease-out ${isRevealed ? 'opacity-0 delay-500' : 'opacity-0'}`}></div>
+           <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300%] h-[300%] rounded-full bg-radial-gradient from-white/30 to-transparent pointer-events-none transition-all duration-1000 ${isRevealed ? 'scale-150 opacity-0' : 'scale-0 opacity-100'}`}></div>
 
-              {/* Center Art */}
-              <div className={`transform transition-transform duration-1000 ${isReversed ? 'rotate-180' : ''}`}>
-                 {card && getIcon(card.iconType)}
-              </div>
+           {/* IMAGE LAYER */}
+           {card?.image && !imageError && (
+               <div className={`relative w-full h-full overflow-hidden ${isReversed ? 'rotate-180' : ''}`}>
+                   <img 
+                     src={card.image} 
+                     alt={card.name}
+                     referrerPolicy="no-referrer"
+                     className={`w-full h-full object-fill transition-all duration-1000 ${imageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-110'}`}
+                     onLoad={() => setImageLoaded(true)}
+                     onError={() => setImageError(true)}
+                   />
+                   {/* Vignette Overlay */}
+                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_50%,rgba(0,0,0,0.6)_100%)]"></div>
+               </div>
+           )}
 
-              {/* Bottom Suit/Name (Abstract) */}
-              <div className={`text-xs uppercase tracking-[0.3em] text-white/50 ${isReversed ? 'rotate-180' : ''}`}>
-                  {card?.type === 'major' ? 'Arcana' : card?.suit}
-              </div>
+           {/* FALLBACK ART */}
+           <div className={`absolute inset-0 bg-gradient-to-br ${card ? card.colors : 'from-zinc-800 to-zinc-900'} transition-opacity duration-500 ${imageLoaded && !imageError ? 'opacity-0' : 'opacity-100'}`}>
+               <div className="absolute inset-3 border border-white/20 rounded-lg flex flex-col items-center justify-between p-6">
+                  <div className={`text-2xl font-mystic text-white/90 drop-shadow-md ${isReversed ? 'rotate-180' : ''}`}>{card?.id}</div>
+                  <div className={`transform transition-transform duration-1000 hover:scale-110 drop-shadow-2xl ${isReversed ? 'rotate-180' : ''}`}>
+                     {card && getIcon(card.iconType)}
+                  </div>
+                  <div className={`text-xs uppercase tracking-[0.3em] text-white/60 text-center ${isReversed ? 'rotate-180' : ''}`}>
+                      {card?.type === 'major' ? 'Arcana' : card?.suit}
+                  </div>
+               </div>
            </div>
 
-           {/* Finish Effects */}
-           <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-white/10 pointer-events-none"></div>
-           <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-soft-light pointer-events-none"></div>
+           {/* HOLOGRAPHIC FOIL OVERLAY */}
+           <div className="absolute inset-0 opacity-30 mix-blend-soft-light pointer-events-none foil-gradient"></div>
+           
+           {/* GLOSSY SHINE ANIMATION */}
+           <div className={`absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent skew-x-12 translate-x-[-200%] transition-transform duration-[1500ms] delay-500 ${isRevealed ? 'translate-x-[200%]' : ''}`}></div>
+
+           {/* GOLD BORDER FRAME */}
+           <div className="absolute inset-0 border-[4px] border-amber-600/20 rounded-xl pointer-events-none mix-blend-overlay"></div>
         </div>
       </div>
     </div>
