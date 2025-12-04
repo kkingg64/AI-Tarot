@@ -1,0 +1,7 @@
+{
+  "name": "AI Tarot Fortune Teller",
+  "description": "An immersive, mystical tarot reading experience powered by Gemini.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
