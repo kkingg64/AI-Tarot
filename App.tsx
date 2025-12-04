@@ -3,27 +3,25 @@
  * @license
  * SPDX-License-Identifier: Apache-2.0
 */
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { Starfield } from './components/Starfield';
 import { TarotCard, CardData } from './components/TarotCard';
-import { MotionDetector } from './components/MotionDetector';
 import { getTarotReading } from './services/gemini';
-import { ArrowPathIcon, GlobeAltIcon, VideoCameraIcon } from '@heroicons/react/24/outline';
+import { SparklesIcon, ArrowPathIcon, GlobeAltIcon } from '@heroicons/react/24/outline';
 
-// --- DECK GENERATION (Sacred Texts Mapping) ---
+// --- DECK GENERATION ---
 
-const BASE_IMAGE_URL = "https://sacred-texts.com/tarot/pkt/img";
+const BASE_IMAGE_URL = "https://raw.githubusercontent.com/tinder-felix/tarot-images/main/cards";
 
 const SUITS = [
-  { name: 'Wands', id: 'wa', color: 'from-orange-900/40 via-red-900/40 to-zinc-900', zh: '權杖' },
-  { name: 'Cups', id: 'cu', color: 'from-blue-900/40 via-cyan-900/40 to-zinc-900', zh: '聖杯' },
-  { name: 'Swords', id: 'sw', color: 'from-slate-700/40 via-zinc-800/40 to-zinc-900', zh: '寶劍' },
-  { name: 'Pentacles', id: 'pe', color: 'from-yellow-900/40 via-amber-900/40 to-zinc-900', zh: '錢幣' }
+  { name: 'Wands', id: 'w', color: 'from-orange-900/40 via-red-900/40 to-zinc-900', zh: '權杖' },
+  { name: 'Cups', id: 'c', color: 'from-blue-900/40 via-cyan-900/40 to-zinc-900', zh: '聖杯' },
+  { name: 'Swords', id: 's', color: 'from-slate-700/40 via-zinc-800/40 to-zinc-900', zh: '寶劍' },
+  { name: 'Pentacles', id: 'p', color: 'from-yellow-900/40 via-amber-900/40 to-zinc-900', zh: '錢幣' }
 ];
 
-// Sacred Texts filename mapping: ac, 02..10, pa, kn, qu, ki
 const RANKS = [
-  { name: 'Ace', val: 'ac', zh: '王牌' },
+  { name: 'Ace', val: '01', zh: '王牌' },
   { name: 'Two', val: '02', zh: '二' },
   { name: 'Three', val: '03', zh: '三' },
   { name: 'Four', val: '04', zh: '四' },
@@ -33,35 +31,35 @@ const RANKS = [
   { name: 'Eight', val: '08', zh: '八' },
   { name: 'Nine', val: '09', zh: '九' },
   { name: 'Ten', val: '10', zh: '十' },
-  { name: 'Page', val: 'pa', zh: '侍衛' },
-  { name: 'Knight', val: 'kn', zh: '騎士' },
-  { name: 'Queen', val: 'qu', zh: '皇后' },
-  { name: 'King', val: 'ki', zh: '國王' }
+  { name: 'Page', val: '11', zh: '侍衛' },
+  { name: 'Knight', val: '12', zh: '騎士' },
+  { name: 'Queen', val: '13', zh: '皇后' },
+  { name: 'King', val: '14', zh: '國王' }
 ];
 
 const MAJOR_ARCANA = [
-  { name: "The Fool", id: "ar00", zh: "愚者" },
-  { name: "The Magician", id: "ar01", zh: "魔術師" },
-  { name: "The High Priestess", id: "ar02", zh: "女祭司" },
-  { name: "The Empress", id: "ar03", zh: "皇后" },
-  { name: "The Emperor", id: "ar04", zh: "皇帝" },
-  { name: "The Hierophant", id: "ar05", zh: "教皇" },
-  { name: "The Lovers", id: "ar06", zh: "戀人" },
-  { name: "The Chariot", id: "ar07", zh: "戰車" },
-  { name: "Strength", id: "ar08", zh: "力量" },
-  { name: "The Hermit", id: "ar09", zh: "隱士" },
-  { name: "Wheel of Fortune", id: "ar10", zh: "命運之輪" },
-  { name: "Justice", id: "ar11", zh: "正義" },
-  { name: "The Hanged Man", id: "ar12", zh: "倒吊人" },
-  { name: "Death", id: "ar13", zh: "死神" },
-  { name: "Temperance", id: "ar14", zh: "節制" },
-  { name: "The Devil", id: "ar15", zh: "惡魔" },
-  { name: "The Tower", id: "ar16", zh: "高塔" },
-  { name: "The Star", id: "ar17", zh: "星星" },
-  { name: "The Moon", id: "ar18", zh: "月亮" },
-  { name: "The Sun", id: "ar19", zh: "太陽" },
-  { name: "Judgement", id: "ar20", zh: "審判" },
-  { name: "The World", id: "ar21", zh: "世界" },
+  { name: "The Fool", id: "00", zh: "愚者" },
+  { name: "The Magician", id: "01", zh: "魔術師" },
+  { name: "The High Priestess", id: "02", zh: "女祭司" },
+  { name: "The Empress", id: "03", zh: "皇后" },
+  { name: "The Emperor", id: "04", zh: "皇帝" },
+  { name: "The Hierophant", id: "05", zh: "教皇" },
+  { name: "The Lovers", id: "06", zh: "戀人" },
+  { name: "The Chariot", id: "07", zh: "戰車" },
+  { name: "Strength", id: "08", zh: "力量" },
+  { name: "The Hermit", id: "09", zh: "隱士" },
+  { name: "Wheel of Fortune", id: "10", zh: "命運之輪" },
+  { name: "Justice", id: "11", zh: "正義" },
+  { name: "The Hanged Man", id: "12", zh: "倒吊人" },
+  { name: "Death", id: "13", zh: "死神" },
+  { name: "Temperance", id: "14", zh: "節制" },
+  { name: "The Devil", id: "15", zh: "惡魔" },
+  { name: "The Tower", id: "16", zh: "高塔" },
+  { name: "The Star", id: "17", zh: "星星" },
+  { name: "The Moon", id: "18", zh: "月亮" },
+  { name: "The Sun", id: "19", zh: "太陽" },
+  { name: "Judgement", id: "20", zh: "審判" },
+  { name: "The World", id: "21", zh: "世界" },
 ];
 
 function generateDeck(): CardData[] {
@@ -107,105 +105,107 @@ const UI_TEXT: Record<string, any> = {
     title: '雙子星神諭',
     subtitle: '人工智能 • 神秘洞察',
     placeholder: '向宇宙提問...',
-    start: '開啟星鏡',
-    channeling: '在鏡前揮手以引導能量...',
-    flipInstruction: '再次揮手以揭示命運',
+    channeling: '正在引導能量...',
+    hold: '按住以揭示命運',
     consultAgain: '再次諮詢',
     loading: '正在諮詢星辰...',
     language: '語言',
     upright: '正位',
     reversed: '逆位',
-    cameraError: '無法存取相機，請使用點擊模式',
   },
   'en': {
     title: 'Oracle of Gemini',
     subtitle: 'Artificial Intelligence • Mystical Insight',
     placeholder: 'Ask the universe a question...',
-    start: 'Open Scrying Mirror',
-    channeling: 'Wave hand over mirror to channel energy...',
-    flipInstruction: 'Wave again to reveal destiny',
+    channeling: 'Channeling Energy...',
+    hold: 'Hold to Reveal Destiny',
     consultAgain: 'Consult Again',
     loading: 'Consulting the stars...',
     language: 'Language',
     upright: 'Upright',
     reversed: 'Reversed',
-    cameraError: 'Camera access denied. Using click mode.',
   },
   'ja': {
     title: '双子座の神託',
     subtitle: '人工知能 • 神秘的な洞察',
     placeholder: '宇宙に問いかける...',
-    start: '鏡を開く',
-    channeling: 'エネルギーを導くために鏡の前で手を振ってください...',
-    flipInstruction: '運命を明らかにするためにもう一度手を振ってください',
+    channeling: 'エネルギーを伝送中...',
+    hold: '運命を明らかにする',
     consultAgain: 'もう一度占う',
     loading: '星々に尋ねています...',
     language: '言語',
     upright: '正位置',
     reversed: '逆位置',
-    cameraError: 'カメラにアクセスできません。クリックモードを使用します。',
   }
 };
 
 const App: React.FC = () => {
-  const [step, setStep] = useState<'intro' | 'channeling' | 'ready_to_reveal' | 'revealed'>('intro');
+  const [step, setStep] = useState<'intro' | 'channeling' | 'drawing' | 'revealed'>('intro');
   const [question, setQuestion] = useState('');
   const [selectedCard, setSelectedCard] = useState<CardData | null>(null);
   const [isReversed, setIsReversed] = useState(false);
   const [reading, setReading] = useState('');
   const [isReadingLoading, setIsReadingLoading] = useState(false);
   const [channelingProgress, setChannelingProgress] = useState(0);
-  const [language, setLanguage] = useState('zh-TW');
+  const [language, setLanguage] = useState('zh-TW'); // Default to Traditional Chinese
   const [showLangMenu, setShowLangMenu] = useState(false);
-  const [cameraEnabled, setCameraEnabled] = useState(false);
 
   const t = UI_TEXT[language] || UI_TEXT['en'];
 
-  // Start the Ritual
-  const startRitual = () => {
+  // Animation Refs
+  const channelInterval = useRef<number | null>(null);
+
+  // 1. Start Channeling (Mouse Down)
+  const startChanneling = () => {
+    if (step !== 'intro') return;
     setStep('channeling');
-    setCameraEnabled(true);
+    
+    let progress = 0;
+    channelInterval.current = window.setInterval(() => {
+        progress += 2; // Speed of fill
+        setChannelingProgress(progress);
+        if (progress >= 100) {
+            completeChanneling();
+        }
+    }, 20);
   };
 
-  // Handle Motion Detection
-  const handleMotion = (motionLevel: number) => {
-    if (step === 'channeling') {
-      setChannelingProgress(prev => {
-        const next = prev + (motionLevel * 5); // Sensitivity
-        if (next >= 100) {
-          completeChanneling();
-          return 100;
-        }
-        return next;
-      });
-    } else if (step === 'ready_to_reveal') {
-        if (motionLevel > 5) { // Threshold for flip
-             revealCard();
-        }
+  // 2. Stop Channeling (Mouse Up)
+  const stopChanneling = () => {
+    if (step === 'channeling' && channelingProgress < 100) {
+       if (channelInterval.current) clearInterval(channelInterval.current);
+       setStep('intro');
+       setChannelingProgress(0);
     }
   };
 
+  // 3. Complete Channeling -> Draw Card
   const completeChanneling = () => {
+      if (channelInterval.current) clearInterval(channelInterval.current);
+      setStep('drawing');
+      
       // Pick random card
       const randomCard = FULL_DECK[Math.floor(Math.random() * FULL_DECK.length)];
+      // 20% Chance of Reversal
       const reversed = Math.random() < 0.2; 
       
       setSelectedCard(randomCard);
       setIsReversed(reversed);
-      setStep('ready_to_reveal'); // Wait for flip gesture
 
-      // Start fetching reading immediately
+      // Start fetching reading immediately but show visuals first
       setIsReadingLoading(true);
+      
       const cardName = randomCard.name + (reversed ? " (Reversed)" : " (Upright)");
+
       getTarotReading(cardName, question, language).then(text => {
           setReading(text);
           setIsReadingLoading(false);
       });
-  };
 
-  const revealCard = () => {
-      setStep('revealed');
-      setCameraEnabled(false); // Turn off camera
+      // Reveal visual after delay
+      setTimeout(() => {
+          setStep('revealed');
+      }, 1500);
   };
 
   const reset = () => {
@@ -215,7 +215,6 @@ const App: React.FC = () => {
       setReading('');
       setIsReversed(false);
       setChannelingProgress(0);
-      setCameraEnabled(false);
   };
 
   const getCardDisplayName = (card: CardData | null) => {
@@ -227,7 +226,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-center p-6 select-none overflow-hidden text-zinc-100">
+    <div className="relative min-h-screen flex flex-col items-center justify-center p-6 select-none overflow-hidden" onMouseUp={stopChanneling} onTouchEnd={stopChanneling}>
       <Starfield />
 
       {/* LANGUAGE SELECTOR */}
@@ -240,6 +239,7 @@ const App: React.FC = () => {
             <GlobeAltIcon className="w-4 h-4" />
             <span className="text-xs uppercase tracking-wider font-medium">{LANGUAGES.find(l => l.code === language)?.label}</span>
           </button>
+          
           {showLangMenu && (
             <div className="absolute top-full right-0 mt-2 w-32 bg-zinc-900 border border-white/10 rounded-lg shadow-xl overflow-hidden flex flex-col">
               {LANGUAGES.map((lang) => (
@@ -270,32 +270,32 @@ const App: React.FC = () => {
       <div className="relative z-10 flex flex-col items-center justify-center w-full max-w-4xl min-h-[500px]">
           
           {/* Card Component */}
-          {selectedCard && (
-             <div className={`transition-all duration-1000 mb-8 cursor-pointer ${step === 'revealed' ? 'scale-100' : 'scale-90'}`} onClick={step === 'ready_to_reveal' ? revealCard : undefined}>
-                <TarotCard 
-                  card={selectedCard} 
-                  isRevealed={step === 'revealed'} 
-                  isDrawing={step === 'ready_to_reveal' || step === 'revealed'} 
-                  isReversed={isReversed}
-                  displayName={getCardDisplayName(selectedCard)}
-                />
-                
-                {step === 'revealed' && (
-                   <div className="text-center mt-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                       <p className="text-amber-300 font-mystic text-xl">
-                           {getCardDisplayName(selectedCard)}
-                       </p>
-                       <p className="text-zinc-500 text-xs uppercase tracking-[0.2em] mt-1">
-                           {isReversed ? t.reversed : t.upright}
-                       </p>
-                   </div>
-                )}
-             </div>
-          )}
+          <div className={`transition-all duration-1000 mb-8 ${step === 'revealed' ? 'scale-100' : step === 'drawing' ? 'scale-90 animate-pulse' : 'scale-0 opacity-0 absolute'}`}>
+             <TarotCard 
+               card={selectedCard} 
+               isRevealed={step === 'revealed'} 
+               isDrawing={step === 'drawing' || step === 'revealed'} 
+               isReversed={isReversed}
+               displayName={getCardDisplayName(selectedCard)}
+             />
+             
+             {step === 'revealed' && (
+                <div className="text-center mt-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    <p className="text-amber-300 font-mystic text-xl">
+                        {getCardDisplayName(selectedCard)}
+                    </p>
+                    <p className="text-zinc-500 text-xs uppercase tracking-[0.2em] mt-1">
+                        {isReversed ? t.reversed : t.upright}
+                    </p>
+                </div>
+             )}
+          </div>
 
-          {/* INTRO STEP */}
-          {step === 'intro' && (
-              <div className="flex flex-col items-center space-y-8 w-full max-w-md animate-in fade-in duration-700">
+          {/* INTRO: Question & Channeling */}
+          {step === 'intro' || step === 'channeling' ? (
+              <div className={`flex flex-col items-center space-y-8 w-full max-w-md transition-all duration-500 ${step === 'intro' || step === 'channeling' ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'}`}>
+                  
+                  {/* Question Input */}
                   <div className="w-full relative group">
                       <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg blur opacity-20 group-hover:opacity-40 transition-opacity"></div>
                       <input 
@@ -307,57 +307,41 @@ const App: React.FC = () => {
                       />
                   </div>
 
-                  <button
-                    onClick={startRitual}
-                    className="group relative px-8 py-3 bg-zinc-900 border border-zinc-700 rounded-full flex items-center space-x-2 overflow-hidden transition-all hover:border-amber-500/50 hover:shadow-[0_0_20px_rgba(245,158,11,0.2)]"
-                  >
-                      <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:animate-shimmer"></div>
-                      <VideoCameraIcon className="w-5 h-5 text-amber-500" />
-                      <span className="uppercase tracking-widest text-sm font-medium text-zinc-300 group-hover:text-amber-200">{t.start}</span>
-                  </button>
-              </div>
-          )}
-
-          {/* CHANNELING / SCRYING MIRROR */}
-          {(step === 'channeling' || step === 'ready_to_reveal') && (
-            <div className="relative flex flex-col items-center justify-center animate-in zoom-in duration-500">
-                {/* Scrying Mirror Container */}
-                <div className={`relative rounded-full p-1 bg-gradient-to-b from-amber-600/50 to-purple-900/50 shadow-[0_0_50px_rgba(88,28,135,0.4)] transition-all duration-700 ${step === 'ready_to_reveal' ? 'w-24 h-24 mt-8 opacity-50' : 'w-64 h-64'}`}>
-                    <div className="relative w-full h-full rounded-full overflow-hidden bg-black">
-                       <MotionDetector 
-                          active={true} 
-                          onMotion={handleMotion} 
-                          className="w-full h-full object-cover opacity-60 mix-blend-screen scale-125"
-                        />
-                        {/* Mystical Overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-purple-900/60 via-transparent to-amber-900/20 pointer-events-none"></div>
-                        <div className="absolute inset-0 rounded-full border-[4px] border-inset border-black/30 pointer-events-none"></div>
-                    </div>
-                    
-                    {/* Progress Ring */}
-                    {step === 'channeling' && (
+                  {/* Channel Button */}
+                  <div className="relative">
+                       {/* Circular Progress */}
+                       <div className="absolute inset-[-4px] rounded-full border border-white/10"></div>
                        <svg className="absolute inset-[-4px] w-[calc(100%+8px)] h-[calc(100%+8px)] -rotate-90 pointer-events-none">
                           <circle
                             cx="50%"
                             cy="50%"
-                            r="48%" 
+                            r="48%" // Adjust based on button size
                             fill="transparent"
                             stroke="#fbbf24"
                             strokeWidth="2"
-                            strokeDasharray="500" 
-                            strokeDashoffset={500 - (channelingProgress / 100) * 500}
-                            className="transition-all duration-100 ease-linear shadow-[0_0_10px_#fbbf24]"
+                            strokeDasharray="300" // Approx circumference
+                            strokeDashoffset={300 - (channelingProgress / 100) * 300}
+                            className="transition-all duration-75 ease-linear"
                           />
                        </svg>
-                    )}
-                </div>
 
-                <p className="mt-6 text-center text-amber-200/80 font-mystic text-lg animate-pulse tracking-wide max-w-xs">
-                    {step === 'channeling' ? t.channeling : t.flipInstruction}
-                </p>
-                <p className="text-xs text-zinc-500 mt-2">(Or click the card if camera is unavailable)</p>
-            </div>
-          )}
+                       <button
+                         onMouseDown={startChanneling}
+                         onMouseLeave={stopChanneling}
+                         onTouchStart={startChanneling}
+                         className="relative w-24 h-24 rounded-full bg-gradient-to-b from-zinc-800 to-black border border-zinc-700 shadow-[0_0_30px_rgba(100,0,255,0.1)] flex items-center justify-center group active:scale-95 transition-all duration-200 cursor-pointer select-none"
+                         style={{ WebkitTapHighlightColor: 'transparent' }}
+                       >
+                           <div className={`absolute inset-0 rounded-full bg-purple-600/20 blur-md transition-opacity duration-300 ${step === 'channeling' ? 'opacity-100' : 'opacity-0'}`}></div>
+                           <SparklesIcon className={`w-10 h-10 text-zinc-400 group-hover:text-yellow-400 transition-colors duration-300 ${step === 'channeling' ? 'animate-spin-slow text-yellow-400' : ''}`} />
+                       </button>
+                  </div>
+                  
+                  <p className="text-zinc-500 text-xs font-mono uppercase tracking-widest animate-pulse">
+                      {step === 'channeling' ? t.channeling : t.hold}
+                  </p>
+              </div>
+          ) : null}
 
           {/* REVEALED: Interpretation */}
           {step === 'revealed' && (
