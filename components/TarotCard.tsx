@@ -37,8 +37,8 @@ interface TarotCardProps {
   isSmall?: boolean; // For deck list view
 }
 
-const getIcon = (iconType: string) => {
-  const props = { className: "w-12 h-12 sm:w-16 sm:h-16 text-white/90 drop-shadow-lg" };
+const getIcon = (iconType: string, small: boolean = false) => {
+  const props = { className: small ? "w-8 h-8 text-white/90 drop-shadow-lg" : "w-12 h-12 sm:w-16 sm:h-16 text-white/90 drop-shadow-lg" };
   switch(iconType) {
     case 'sun': return <SunIcon {...props} className={props.className + " text-yellow-200"} />;
     case 'moon': return <MoonIcon {...props} className={props.className + " text-cyan-200"} />;
@@ -164,6 +164,61 @@ export const TarotCard: React.FC<TarotCardProps> = ({ card, isRevealed, isDrawin
            <div className={`absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent skew-x-12 transition-transform duration-1500 delay-500 ${isRevealed ? 'translate-x-pos-full-200' : 'translate-x-neg-full-200'}`}></div>
         </div>
       </div>
+    </div>
+  );
+};
+
+export const MiniCard: React.FC<{ card: CardData; isReversed: boolean }> = ({ card, isReversed }) => {
+  const [imageError, setImageError] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+
+  useEffect(() => {
+    setImageError(false);
+    setImageLoaded(false);
+  }, [card]);
+
+  const gradientStyle = {
+    backgroundImage: `linear-gradient(to bottom right, ${card.gradientColors.join(', ')})`,
+  };
+
+  return (
+    <div className="w-48 h-80 relative rounded-xl overflow-hidden shadow-2xl shadow-black/60 bg-zinc-900 group">
+      {/* IMAGE LAYER */}
+      {card.image && !imageError && (
+        <div className={`relative w-full h-full overflow-hidden transition-opacity duration-1000 ${imageLoaded ? 'opacity-100' : 'opacity-0'} ${isReversed ? 'rotate-180' : ''}`}>
+          <img
+            src={card.image}
+            alt={card.name}
+            referrerPolicy="no-referrer"
+            className="w-full h-full object-fill"
+            onLoad={() => setImageLoaded(true)}
+            onError={() => setImageError(true)}
+          />
+          <div className="absolute inset-0 bg-vignette-overlay"></div>
+        </div>
+      )}
+
+      {/* FALLBACK ART */}
+      <div
+        style={gradientStyle}
+        className={`absolute inset-0 transition-opacity duration-500 ${!imageLoaded || imageError ? 'opacity-100' : 'opacity-0'}`}
+      >
+        <div className="absolute inset-2 border border-white/20 rounded-lg flex flex-col items-center justify-between p-4">
+          <div className={`text-xl font-mystic text-white/90 drop-shadow-md ${isReversed ? 'rotate-180' : ''}`}>{card.id}</div>
+          <div className={`transform drop-shadow-2xl ${isReversed ? 'rotate-180' : ''}`}>
+            {getIcon(card.iconType, true)}
+          </div>
+          <div className={`text-9px uppercase tracking-widest text-white/60 text-center ${isReversed ? 'rotate-180' : ''}`}>
+            {card.type === 'major' ? 'Arcana' : card.suit}
+          </div>
+        </div>
+      </div>
+      
+      {/* GOLD BORDER */}
+      <div className="absolute inset-0 rounded-xl border-2 border-yellow-500/80 pointer-events-none"></div>
+
+      {/* HOLOGRAPHIC FOIL OVERLAY */}
+      <div className="absolute inset-0 opacity-20 mix-blend-soft-light pointer-events-none foil-gradient"></div>
     </div>
   );
 };

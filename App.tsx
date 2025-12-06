@@ -4,7 +4,7 @@
 */
 import React from 'react';
 import { Starfield } from './components/Starfield';
-import { TarotCard, CardData, CardBack } from './components/TarotCard';
+import { TarotCard, CardData, CardBack, MiniCard } from './components/TarotCard';
 import { getTarotReading, CardReadingInput, StructuredReading } from './services/gemini';
 import { SparklesIcon, ArrowPathIcon, GlobeAltIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { SparklesIcon as SparklesIconSolid } from '@heroicons/react/24/solid';
@@ -191,7 +191,7 @@ const UI_TEXT: Record<string, any> = {
   }
 };
 
-interface DrawnCard {
+export interface DrawnCard {
   card: CardData;
   reversed: boolean;
   positionLabel: 'Past' | 'Present' | 'Future';
@@ -393,6 +393,11 @@ const App: React.FC = () => {
           default: return '';
       }
   };
+
+  const selectedCard =
+    activeReadingView === 'past' ? drawnCards[0] :
+    activeReadingView === 'present' ? drawnCards[1] :
+    activeReadingView === 'future' ? drawnCards[2] : null;
 
   return (
     <div 
@@ -728,19 +733,51 @@ const App: React.FC = () => {
                           </div>
                       </div>
 
-                      <div className="relative z-10 overflow-y-auto p-6 reading-panel-content">
-                          <>
-                              <div className="flex items-center justify-center space-x-3 mb-6">
-                                  <div className="h-1px flex-grow bg-gradient-to-r from-transparent to-amber-500/50"></div>
-                                  <h3 id="reading-title" className="text-center text-amber-300 font-mystic text-lg tracking-widest whitespace-nowrap">{getReadingTitle()}</h3>
-                                  <div className="h-1px flex-grow bg-gradient-to-l from-transparent to-amber-500/50"></div>
-                              </div>
-                              <div className="prose prose-invert max-w-none pb-4">
-                                  <p className="text-zinc-200 font-serif text-justify drop-shadow-md reading-text">
-                                      {getCurrentReadingText()}
-                                  </p>
-                              </div>
-                          </>
+                      <div className="relative z-10 overflow-y-auto p-6 md:p-8 reading-panel-content">
+                          {selectedCard ? (
+                            <div className="flex flex-col md:flex-row gap-6 md:gap-8">
+                                <div className="w-full md:w-5/12 lg:w-4/12 flex-shrink-0 flex flex-col items-center space-y-4">
+                                  <MiniCard card={selectedCard.card} isReversed={selectedCard.reversed} />
+                                  <div className="text-center">
+                                      <h4 className="text-amber-100 font-mystic text-lg md:text-xl lg:text-2xl drop-shadow-md bg-gradient-to-r from-amber-200 to-yellow-400 bg-clip-text text-transparent">
+                                          {getCardDisplayName(selectedCard.card)}
+                                      </h4>
+                                      <div className="flex items-center justify-center gap-2 mt-2">
+                                          <span className="h-1px w-4 bg-amber-500/50"></span>
+                                          <p className="text-10px text-amber-500/80 uppercase tracking-wider font-semibold">
+                                              {selectedCard.reversed ? t.reversed : t.upright}
+                                          </p>
+                                          <span className="h-1px w-4 bg-amber-500/50"></span>
+                                      </div>
+                                  </div>
+                                </div>
+                                <div className="w-full md:w-7/12 lg:w-8/12">
+                                  <div className="flex items-center justify-center space-x-3 mb-6">
+                                      <div className="h-1px flex-grow bg-gradient-to-r from-transparent to-amber-500/50"></div>
+                                      <h3 id="reading-title" className="text-center text-amber-300 font-mystic text-lg tracking-widest whitespace-nowrap">{getReadingTitle()}</h3>
+                                      <div className="h-1px flex-grow bg-gradient-to-l from-transparent to-amber-500/50"></div>
+                                  </div>
+                                  <div className="prose prose-invert max-w-none pb-4">
+                                      <p className="text-zinc-200 font-serif text-justify drop-shadow-md reading-text">
+                                          {getCurrentReadingText()}
+                                      </p>
+                                  </div>
+                                </div>
+                            </div>
+                          ) : (
+                              <>
+                                  <div className="flex items-center justify-center space-x-3 mb-6">
+                                      <div className="h-1px flex-grow bg-gradient-to-r from-transparent to-amber-500/50"></div>
+                                      <h3 id="reading-title" className="text-center text-amber-300 font-mystic text-lg tracking-widest whitespace-nowrap">{getReadingTitle()}</h3>
+                                      <div className="h-1px flex-grow bg-gradient-to-l from-transparent to-amber-500/50"></div>
+                                  </div>
+                                  <div className="prose prose-invert max-w-none pb-4">
+                                      <p className="text-zinc-200 font-serif text-justify drop-shadow-md reading-text">
+                                          {getCurrentReadingText()}
+                                      </p>
+                                  </div>
+                              </>
+                          )}
                       </div>
                   </div>
               </div>
