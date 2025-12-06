@@ -1,4 +1,5 @@
 
+
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
@@ -89,9 +90,16 @@ export const TarotCard: React.FC<TarotCardProps> = ({ card, isRevealed, isDrawin
   const [imageError, setImageError] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
 
+  // Pre-load the image to prevent flickering during animation
   useEffect(() => {
     setImageError(false);
     setImageLoaded(false);
+    if (card?.image) {
+      const img = new Image();
+      img.src = card.image;
+      img.onload = () => setImageLoaded(true);
+      img.onerror = () => setImageError(true);
+    }
   }, [card]);
 
   const defaultGradient = 'linear-gradient(to bottom right, rgb(39, 39, 42), rgb(24, 24, 27))'; // from-zinc-800 to-zinc-900
@@ -130,8 +138,6 @@ export const TarotCard: React.FC<TarotCardProps> = ({ card, isRevealed, isDrawin
                      alt={card.name}
                      referrerPolicy="no-referrer"
                      className={`w-full h-full object-fill transition-all duration-1000 ${imageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-110'}`}
-                     onLoad={() => setImageLoaded(true)}
-                     onError={() => setImageError(true)}
                    />
                    {/* Vignette Overlay */}
                    <div className="absolute inset-0 bg-vignette-overlay"></div>
@@ -172,9 +178,16 @@ export const MiniCard: React.FC<{ card: CardData; isReversed: boolean }> = ({ ca
   const [imageError, setImageError] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
 
+  // Pre-load the image to prevent flickering
   useEffect(() => {
     setImageError(false);
     setImageLoaded(false);
+    if (card?.image) {
+      const img = new Image();
+      img.src = card.image;
+      img.onload = () => setImageLoaded(true);
+      img.onerror = () => setImageError(true);
+    }
   }, [card]);
 
   const gradientStyle = {
@@ -191,8 +204,6 @@ export const MiniCard: React.FC<{ card: CardData; isReversed: boolean }> = ({ ca
             alt={card.name}
             referrerPolicy="no-referrer"
             className="w-full h-full object-fill"
-            onLoad={() => setImageLoaded(true)}
-            onError={() => setImageError(true)}
           />
           <div className="absolute inset-0 bg-vignette-overlay"></div>
         </div>

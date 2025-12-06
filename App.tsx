@@ -605,6 +605,17 @@ const App: React.FC = () => {
                       <p className="text-sm font-mystic text-violet-300/80 animate-pulse tracking-widest">{t.loading}</p>
                     </div>
                   )}
+
+                  {revealedCards.every(Boolean) && !isReadingLoading && reading && (
+                    <div className="mt-8 text-center animate-fade-in z-20">
+                        <button
+                            onClick={() => setActiveReadingView('summary')}
+                            className="px-8 py-3 bg-gradient-to-r from-amber-600 to-yellow-600 rounded-full text-white font-mystic tracking-widest shadow-lg shadow-amber-500/50 hover:scale-105 transition-transform animate-pulse-glow"
+                        >
+                            {t.summary_title}
+                        </button>
+                    </div>
+                  )}
               </div>
           )}
 
@@ -704,7 +715,7 @@ const App: React.FC = () => {
                                 className={`relative flex items-center space-x-2 px-4 py-1.5 rounded-full text-xs font-mystic tracking-widest border transition-all duration-300 group
                                   ${activeReadingView === 'summary' 
                                     ? 'bg-amber-400/20 text-amber-300 border-amber-400/80 shadow-md shadow-amber-500/20' 
-                                    : `bg-white/5 text-zinc-400 border-transparent hover:border-white/20 hover:text-white ${revealedCards.every(Boolean) ? 'animate-pulse-glow' : ''}`
+                                    : `bg-white/5 text-zinc-400 border-transparent hover:border-white/20 hover:text-white invisible pointer-events-none`
                                   }`
                                 }
                               >
