@@ -6,7 +6,7 @@ import React from 'react';
 import { Starfield } from './components/Starfield';
 import { TarotCard, CardData, CardBack } from './components/TarotCard';
 import { getTarotReading, CardReadingInput, StructuredReading } from './services/gemini';
-import { SparklesIcon, ArrowPathIcon, GlobeAltIcon } from '@heroicons/react/24/outline';
+import { SparklesIcon, ArrowPathIcon, GlobeAltIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { SparklesIcon as SparklesIconSolid } from '@heroicons/react/24/solid';
 
 const { useState, useRef, useEffect } = React;
@@ -549,13 +549,12 @@ const App: React.FC = () => {
 
           {/* DRAWING / REVEAL STAGE */}
           {step === 'drawing' && (
-              <div className="w-full flex flex-col items-center justify-start gap-4 md:gap-6 px-4 mt-4 md:mt-6 flex-grow min-h-0">
+              <div className="w-full flex flex-col items-center justify-center gap-4 md:gap-6 px-4 mt-4 md:mt-6 flex-grow">
                   
                   <div className="w-full flex items-center justify-center gap-2 md:gap-4 lg:gap-6 perspective-1000 z-20 flex-shrink-0">
                       {drawnCards.map((drawn, idx) => {
                           if (!drawn) return null;
                           const position = idx === 0 ? 'past' : idx === 1 ? 'present' : 'future';
-                          const isRevealed = revealedCards[idx];
                           const isActive = activeReadingView === position || activeReadingView === null;
                           
                           return (
@@ -567,17 +566,17 @@ const App: React.FC = () => {
                                   }}
                                   className={`flex flex-col items-center group transition-all duration-700 ${!isReadingLoading && reading ? 'cursor-pointer' : 'cursor-wait'} ${isActive ? 'opacity-100 scale-100' : 'opacity-60 scale-95'}`}
                               >
-                                  <div className={`mb-4 text-xs font-mystic uppercase tracking-widest text-amber-400 transition-all delay-700 duration-700 ${isRevealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+                                  <div className={`mb-4 text-xs font-mystic uppercase tracking-widest text-amber-400 transition-all delay-700 duration-700 ${revealedCards[idx] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
                                       {getPositionLabel(drawn.positionLabel)}
                                   </div>
                                   <TarotCard 
                                       card={drawn.card} 
-                                      isRevealed={isRevealed} 
+                                      isRevealed={revealedCards[idx]} 
                                       isDrawing={true} 
                                       isReversed={drawn.reversed}
                                       index={idx}
                                   />
-                                  {isRevealed && (
+                                  {revealedCards[idx] && (
                                       <div className={`text-center mt-6 transition-all duration-700 delay-500 opacity-0 animate-slide-in-up`} style={{animationDelay: `500ms`}}>
                                           <h4 className="text-amber-100 font-mystic text-lg md:text-xl lg:text-2xl drop-shadow-md bg-gradient-to-r from-amber-200 to-yellow-400 bg-clip-text text-transparent">
                                               {getCardDisplayName(drawn.card)}
@@ -600,59 +599,6 @@ const App: React.FC = () => {
                     <div className="text-center my-8 animate-fade-in">
                       <p className="text-sm font-mystic text-violet-300/80 animate-pulse tracking-widest">{t.loading}</p>
                     </div>
-                  )}
-
-                  {activeReadingView && reading && (
-                      <div 
-                          onClick={(e) => e.stopPropagation()} 
-                          className="w-full max-w-2xl md:max-w-4xl lg:max-w-5xl animate-slide-in-up-slow touch-auto pointer-events-auto flex-grow min-h-0"
-                      >
-                          <div className="relative bg-black/70 backdrop-blur-lg border border-white/10 shadow-2xl shadow-black/70 overflow-hidden flex flex-col group rounded-2xl h-full">
-                              
-                              <div className="relative z-20 flex items-center justify-between px-6 py-4 border-b border-white/10 flex-shrink-0">
-                                  <div className="flex items-center space-x-2">
-                                      <button
-                                        onClick={() => setActiveReadingView('summary')}
-                                        className={`relative flex items-center space-x-2 px-4 py-1.5 rounded-full text-xs font-mystic tracking-widest border transition-all duration-300 group
-                                          ${activeReadingView === 'summary' 
-                                            ? 'bg-amber-400/20 text-amber-300 border-amber-400/80 shadow-md shadow-amber-500/20' 
-                                            : `bg-white/5 text-zinc-400 border-transparent hover:border-white/20 hover:text-white ${revealedCards.every(Boolean) ? 'animate-pulse-glow' : ''}`
-                                          }`
-                                        }
-                                      >
-                                        <SparklesIconSolid className={`w-3.5 h-3.5 transition-colors ${activeReadingView === 'summary' ? 'text-amber-400' : 'text-amber-500'}`} />
-                                        <span>{t.summary_title}</span>
-                                      </button>
-                                  </div>
-                                  
-                                  <div className={`transition-opacity duration-500 ${activeReadingView === 'summary' ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-                                    <button 
-                                        onClick={reset}
-                                        className="group relative px-5 py-2 bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-400 hover:to-amber-400 rounded-full border border-amber-600/80 shadow-lg shadow-black/50 transition-all duration-300 flex items-center space-x-2 active:scale-95"
-                                    >
-                                        <ArrowPathIcon className="w-3 h-3 text-zinc-800 group-hover:rotate-180 transition-transform duration-500" />
-                                        <span className="uppercase tracking-widest text-10px font-bold text-zinc-900">{t.consultAgain}</span>
-                                    </button>
-                                  </div>
-
-                              </div>
-
-                              <div className="relative z-10 overflow-y-auto p-6 reading-panel-content">
-                                  <>
-                                      <div className="flex items-center justify-center space-x-3 mb-6">
-                                          <div className="h-1px flex-grow bg-gradient-to-r from-transparent to-amber-500/50"></div>
-                                          <h3 className="text-center text-amber-300 font-mystic text-lg tracking-widest whitespace-nowrap">{getReadingTitle()}</h3>
-                                          <div className="h-1px flex-grow bg-gradient-to-l from-transparent to-amber-500/50"></div>
-                                      </div>
-                                      <div className="prose prose-invert max-w-none pb-4">
-                                          <p className="text-zinc-200 font-serif text-justify drop-shadow-md reading-text">
-                                              {getCurrentReadingText()}
-                                          </p>
-                                      </div>
-                                  </>
-                              </div>
-                          </div>
-                      </div>
                   )}
               </div>
           )}
@@ -730,6 +676,76 @@ const App: React.FC = () => {
           ) : null}
 
       </main>
+
+      {/* READING MODAL */}
+      {activeReadingView && reading && (
+          <div 
+              className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in"
+              onClick={() => setActiveReadingView(null)}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="reading-title"
+          >
+              <div 
+                  onClick={(e) => e.stopPropagation()} 
+                  className="w-full max-w-2xl md:max-w-4xl lg:max-w-5xl animate-slide-in-up touch-auto pointer-events-auto"
+              >
+                  <div className="relative bg-black/70 backdrop-blur-lg border border-white/10 shadow-2xl shadow-black/70 overflow-hidden flex flex-col group rounded-2xl" style={{ maxHeight: 'calc(100vh - 4rem)' }}>
+                      
+                      <div className="relative z-20 flex items-center justify-between px-6 py-4 border-b border-white/10 flex-shrink-0">
+                          <div className="flex items-center space-x-2">
+                              <button
+                                onClick={() => setActiveReadingView('summary')}
+                                className={`relative flex items-center space-x-2 px-4 py-1.5 rounded-full text-xs font-mystic tracking-widest border transition-all duration-300 group
+                                  ${activeReadingView === 'summary' 
+                                    ? 'bg-amber-400/20 text-amber-300 border-amber-400/80 shadow-md shadow-amber-500/20' 
+                                    : `bg-white/5 text-zinc-400 border-transparent hover:border-white/20 hover:text-white ${revealedCards.every(Boolean) ? 'animate-pulse-glow' : ''}`
+                                  }`
+                                }
+                              >
+                                <SparklesIconSolid className={`w-3.5 h-3.5 transition-colors ${activeReadingView === 'summary' ? 'text-amber-400' : 'text-amber-500'}`} />
+                                <span>{t.summary_title}</span>
+                              </button>
+                          </div>
+                          
+                          <div className="flex items-center space-x-4">
+                            <div className={`transition-opacity duration-500 ${activeReadingView === 'summary' ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                              <button 
+                                  onClick={reset}
+                                  className="group relative px-5 py-2 bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-400 hover:to-amber-400 rounded-full border border-amber-600/80 shadow-lg shadow-black/50 transition-all duration-300 flex items-center space-x-2 active:scale-95"
+                              >
+                                  <ArrowPathIcon className="w-3 h-3 text-zinc-800 group-hover:rotate-180 transition-transform duration-500" />
+                                  <span className="uppercase tracking-widest text-10px font-bold text-zinc-900">{t.consultAgain}</span>
+                              </button>
+                            </div>
+                             <button 
+                                onClick={() => setActiveReadingView(null)} 
+                                className="text-zinc-500 hover:text-white transition-colors"
+                                aria-label="Close"
+                            >
+                                <XMarkIcon className="w-6 h-6" />
+                            </button>
+                          </div>
+                      </div>
+
+                      <div className="relative z-10 overflow-y-auto p-6 reading-panel-content">
+                          <>
+                              <div className="flex items-center justify-center space-x-3 mb-6">
+                                  <div className="h-1px flex-grow bg-gradient-to-r from-transparent to-amber-500/50"></div>
+                                  <h3 id="reading-title" className="text-center text-amber-300 font-mystic text-lg tracking-widest whitespace-nowrap">{getReadingTitle()}</h3>
+                                  <div className="h-1px flex-grow bg-gradient-to-l from-transparent to-amber-500/50"></div>
+                              </div>
+                              <div className="prose prose-invert max-w-none pb-4">
+                                  <p className="text-zinc-200 font-serif text-justify drop-shadow-md reading-text">
+                                      {getCurrentReadingText()}
+                                  </p>
+                              </div>
+                          </>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      )}
     </div>
   );
 };
