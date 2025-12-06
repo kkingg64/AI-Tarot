@@ -1,17 +1,14 @@
-
-
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
 */
-// FIX: Corrected invalid import statement for React.
 import React from 'react';
 import { Starfield } from './components/Starfield';
 import { TarotCard, CardData, CardBack } from './components/TarotCard';
 import { getTarotReading, CardReadingInput, StructuredReading } from './services/gemini';
 import { SparklesIcon, ArrowPathIcon, GlobeAltIcon } from '@heroicons/react/24/outline';
+import { SparklesIcon as SparklesIconSolid } from '@heroicons/react/24/solid';
 
-// FIX: Used `React` to destructure hooks instead of undefined `aistudio`.
 const { useState, useRef, useEffect } = React;
 
 // --- DECK GENERATION ---
@@ -197,14 +194,16 @@ const UI_TEXT: Record<string, any> = {
 interface DrawnCard {
   card: CardData;
   reversed: boolean;
-  positionLabel: string;
+  positionLabel: 'Past' | 'Present' | 'Future';
 }
 
-type RevealStage = 0 | 1 | 2 | 3 | 4;
+type RevealStage = 0 | 1 | 2 | 3;
+type ActiveReadingView = 'past' | 'present' | 'future' | 'summary';
 
 const App: React.FC = () => {
   const [step, setStep] = useState<'intro' | 'channeling' | 'dealing' | 'drawing'>('intro');
   const [revealStage, setRevealStage] = useState<RevealStage>(0);
+  const [activeReadingView, setActiveReadingView] = useState<ActiveReadingView | null>(null);
   const [question, setQuestion] = useState('');
   
   const [shuffledDeck, setShuffledDeck] = useState<CardData[]>([]);
@@ -234,6 +233,18 @@ const App: React.FC = () => {
      setShuffledDeck(deckCopy);
   }, [sessionId]); 
   
+  // This effect handles the cinematic auto-reveal sequence.
+  useEffect(() => {
+    // Only run this sequence once when the reading is first loaded.
+    if (step === 'drawing' && !isReadingLoading && reading && revealStage === 0) {
+      // Reveal only the first card automatically, then wait for user input.
+      setTimeout(() => {
+        setRevealStage(1);
+        setActiveReadingView('past');
+      }, 500);
+    }
+  }, [step, isReadingLoading, reading]);
+
   const completeChanneling = () => {
       if (channelInterval.current) clearInterval(channelInterval.current);
       setDrawnCards([null, null, null]);
@@ -332,32 +343,29 @@ const App: React.FC = () => {
         setReading(data);
         setIsReadingLoading(false);
     });
-
-    setTimeout(() => setRevealStage(1), 500);
   };
-
-  const nextReveal = (e?: React.MouseEvent | React.TouchEvent) => {
-      e?.stopPropagation(); 
-      if (revealStage < 4) {
-          setRevealStage(prev => (prev + 1) as RevealStage);
-      }
+  
+  const handleNextReveal = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (revealStage === 1) {
+        setRevealStage(2);
+        setActiveReadingView('present');
+    } else if (revealStage === 2) {
+        setRevealStage(3);
+        setActiveReadingView('future');
+    }
   };
 
   const reset = (e?: React.MouseEvent | React.TouchEvent) => {
       e?.stopPropagation();
       setStep('intro');
       setRevealStage(0);
+      setActiveReadingView(null);
       setQuestion('');
       setDrawnCards([null, null, null]);
       setReading(null);
       setChannelingProgress(0);
       setSessionId(id => id + 1);
-  };
-
-  const handleBackgroundTap = () => {
-      if (step === 'drawing' && revealStage > 0 && revealStage < 4 && !isReadingLoading) {
-          nextReveal();
-      }
   };
 
   const getCardDisplayName = (card: CardData | null) => {
@@ -376,12 +384,23 @@ const App: React.FC = () => {
   };
 
   const getCurrentReadingText = () => {
-      if (!reading) return '';
-      switch (revealStage) {
-          case 1: return reading.past;
-          case 2: return reading.present;
-          case 3: return reading.future;
-          case 4: return reading.summary;
+      if (!reading || !activeReadingView) return '';
+      switch (activeReadingView) {
+          case 'past': return reading.past;
+          case 'present': return reading.present;
+          case 'future': return reading.future;
+          case 'summary': return reading.summary;
+          default: return '';
+      }
+  };
+  
+  const getReadingTitle = () => {
+      if (!activeReadingView) return '';
+      switch (activeReadingView) {
+          case 'past': return t.pos_past;
+          case 'present': return t.pos_present;
+          case 'future': return t.pos_future;
+          case 'summary': return t.summary_title;
           default: return '';
       }
   };
@@ -391,7 +410,7 @@ const App: React.FC = () => {
       className={`relative min-h-screen flex flex-col items-center select-none overflow-x-hidden overflow-y-auto touch-none cursor-default ${step === 'dealing' ? 'dealing-glow-active' : ''}`}
       onPointerMove={handleGlobalPointerMove}
       onPointerUp={handleGlobalPointerUp}
-      onClick={handleBackgroundTap}
+      onClick={() => showLangMenu && setShowLangMenu(false)}
     >
       <Starfield />
 
@@ -437,7 +456,7 @@ const App: React.FC = () => {
 
           {/* DEALING PHASE UI */}
           {step === 'dealing' && (
-             <div className="w-full flex flex-col items-center justify-center h-full pt-8 animate-fade-in">
+             <div className="w-full flex flex-col items-center justify-start h-full pt-4 animate-fade-in">
                  
                 <div className="deck-card-container">
                     {shuffledDeck.slice(0, 42).map((card, i) => {
@@ -541,24 +560,23 @@ const App: React.FC = () => {
 
           {/* DRAWING / REVEAL STAGE */}
           {step === 'drawing' && (
-              <div className="w-full flex flex-col items-center justify-center gap-8 md:gap-12 px-4 mt-8 flex-grow">
+              <div className="w-full flex flex-col items-center justify-center gap-4 md:gap-6 px-4 mt-4 md:mt-6 flex-grow">
                   
                   <div className="w-full flex items-center justify-center gap-2 md:gap-4 lg:gap-6 perspective-1000 z-20">
                       {drawnCards.map((drawn, idx) => {
                           if (!drawn) return null;
+                          const position = idx === 0 ? 'past' : idx === 1 ? 'present' : 'future';
                           const isRevealed = revealStage >= idx + 1;
-                          const isFocused = (revealStage === idx + 1) || (revealStage as number) === 4;
+                          const isActive = activeReadingView === position || (revealStage < 3 && !activeReadingView);
                           
                           return (
                               <div 
                                   key={idx} 
                                   onClick={(e) => { 
-                                      if (isFocused && revealStage < 4) {
-                                          e.stopPropagation();
-                                          nextReveal();
-                                      }
+                                      e.stopPropagation();
+                                      if (revealStage >= 3) setActiveReadingView(position);
                                   }}
-                                  className={`flex flex-col items-center group transition-all duration-700 ${revealStage === 4 ? 'opacity-100 scale-100' : isFocused ? 'opacity-100 scale-100' : 'opacity-40 scale-90 blur-sm'}`}
+                                  className={`flex flex-col items-center group transition-all duration-700 ${revealStage >= 3 ? 'cursor-pointer' : ''} ${isActive ? 'opacity-100 scale-100' : 'opacity-40 scale-90 blur-sm'}`}
                               >
                                   <div className={`mb-4 text-xs font-mystic uppercase tracking-widest text-amber-400 transition-all delay-700 duration-700 ${isRevealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
                                       {getPositionLabel(drawn.positionLabel)}
@@ -572,7 +590,7 @@ const App: React.FC = () => {
                                   />
                                   {isRevealed && (
                                       <div className={`text-center mt-6 transition-all duration-700 delay-500 opacity-0 animate-slide-in-up`} style={{animationDelay: `500ms`}}>
-                                          <h4 className="text-amber-100 font-mystic text-xl drop-shadow-md bg-gradient-to-r from-amber-200 to-yellow-400 bg-clip-text text-transparent">
+                                          <h4 className="text-amber-100 font-mystic text-lg md:text-xl lg:text-2xl drop-shadow-md bg-gradient-to-r from-amber-200 to-yellow-400 bg-clip-text text-transparent">
                                               {getCardDisplayName(drawn.card)}
                                           </h4>
                                           <div className="flex items-center justify-center gap-2 mt-2">
@@ -589,10 +607,10 @@ const App: React.FC = () => {
                       })}
                   </div>
 
-                  {revealStage > 0 && (
+                  {(isReadingLoading || reading) && (
                       <div 
                           onClick={(e) => e.stopPropagation()} 
-                          className="w-full max-w-2xl animate-slide-in-up-slow touch-auto pointer-events-auto"
+                          className="w-full max-w-2xl md:max-w-4xl lg:max-w-5xl animate-slide-in-up-slow touch-auto pointer-events-auto"
                       >
                           <div className="relative bg-black/70 backdrop-blur-lg border border-white/10 shadow-2xl shadow-black/70 overflow-hidden flex flex-col group rounded-2xl">
                               
@@ -604,16 +622,42 @@ const App: React.FC = () => {
                                               <span className="text-10px uppercase tracking-widest text-violet-300">{t.loading}</span>
                                           </div>
                                       ) : (
-                                          <span className="text-10px uppercase tracking-widest text-zinc-400">{revealStage < 4 ? t.tap_anywhere : ' '}</span>
+                                          <button
+                                            onClick={() => setActiveReadingView('summary')}
+                                            className={`relative flex items-center space-x-2 px-4 py-1.5 rounded-full text-xs font-mystic tracking-widest border transition-all duration-300 group
+                                              ${activeReadingView === 'summary' 
+                                                ? 'bg-amber-400/20 text-amber-300 border-amber-400/80 shadow-md shadow-amber-500/20' 
+                                                : `bg-white/5 text-zinc-400 border-transparent hover:border-white/20 hover:text-white ${revealStage === 3 ? 'animate-pulse-glow' : ''}`
+                                              }`
+                                            }
+                                          >
+                                            <SparklesIconSolid className={`w-3.5 h-3.5 transition-colors ${activeReadingView === 'summary' ? 'text-amber-400' : 'text-amber-500'}`} />
+                                            <span>{t.summary_title}</span>
+                                          </button>
                                       )}
                                   </div>
-                                  <button 
-                                      onClick={reset}
-                                      className="group relative px-5 py-2 bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-400 hover:to-amber-400 rounded-full border border-amber-600/80 shadow-lg shadow-black/50 transition-all duration-300 flex items-center space-x-2 active:scale-95"
-                                  >
-                                      <ArrowPathIcon className="w-3 h-3 text-zinc-800 group-hover:rotate-180 transition-transform duration-500" />
-                                      <span className="uppercase tracking-widest text-10px font-bold text-zinc-900">{t.consultAgain}</span>
-                                  </button>
+                                  
+                                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                                    {!isReadingLoading && revealStage > 0 && revealStage < 3 && (
+                                        <button
+                                            onClick={handleNextReveal}
+                                            className="px-6 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 rounded-full text-white text-xs font-mystic tracking-widest shadow-lg shadow-violet-500/30 hover:scale-105 transition-transform animate-fade-in"
+                                        >
+                                            {t.next}
+                                        </button>
+                                    )}
+                                  </div>
+
+                                  <div className={`transition-opacity duration-500 ${activeReadingView === 'summary' ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                                    <button 
+                                        onClick={reset}
+                                        className="group relative px-5 py-2 bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-400 hover:to-amber-400 rounded-full border border-amber-600/80 shadow-lg shadow-black/50 transition-all duration-300 flex items-center space-x-2 active:scale-95"
+                                    >
+                                        <ArrowPathIcon className="w-3 h-3 text-zinc-800 group-hover:rotate-180 transition-transform duration-500" />
+                                        <span className="uppercase tracking-widest text-10px font-bold text-zinc-900">{t.consultAgain}</span>
+                                    </button>
+                                  </div>
+
                               </div>
 
                               <div className="relative z-10 overflow-y-auto p-6 flex-grow reading-panel-height">
@@ -627,11 +671,11 @@ const App: React.FC = () => {
                                       <>
                                           <div className="flex items-center justify-center space-x-3 mb-6">
                                               <div className="h-1px flex-grow bg-gradient-to-r from-transparent to-amber-500/50"></div>
-                                              <h3 className="text-center text-amber-300 font-mystic text-lg tracking-widest whitespace-nowrap">{t.summary_title}</h3>
+                                              <h3 className="text-center text-amber-300 font-mystic text-lg tracking-widest whitespace-nowrap">{getReadingTitle()}</h3>
                                               <div className="h-1px flex-grow bg-gradient-to-l from-transparent to-amber-500/50"></div>
                                           </div>
                                           <div className="prose prose-invert max-w-none pb-4">
-                                              <p className="text-zinc-200 leading-8 text-lg font-serif text-justify drop-shadow-md">
+                                              <p className="text-zinc-200 font-serif text-justify drop-shadow-md reading-text">
                                                   {getCurrentReadingText()}
                                               </p>
                                           </div>
