@@ -193,36 +193,19 @@
 }
 
 
-.reading-panel-height {
-  height: auto;
-  max-height: 50vh; /* A more sensible default for mobile */
-}
-
-@media (min-width: 768px) { /* md breakpoint for tablets */
-  .reading-panel-height {
-    max-height: 60vh;
-  }
-}
-
-@media (min-width: 1024px) { /* lg breakpoint */
-  .reading-panel-height {
-    max-height: calc(100vh - 34rem); /* Accommodate larger cards and headers */
-  }
-}
-
 /* Custom Scrollbar for Reading Panel */
-.reading-panel-height::-webkit-scrollbar {
+.reading-panel-content::-webkit-scrollbar {
   width: 8px;
 }
-.reading-panel-height::-webkit-scrollbar-track {
+.reading-panel-content::-webkit-scrollbar-track {
   background: rgba(255, 255, 255, 0.05);
   border-radius: 10px;
 }
-.reading-panel-height::-webkit-scrollbar-thumb {
+.reading-panel-content::-webkit-scrollbar-thumb {
   background: rgba(251, 191, 36, 0.4);
   border-radius: 10px;
 }
-.reading-panel-height::-webkit-scrollbar-thumb:hover {
+.reading-panel-content::-webkit-scrollbar-thumb:hover {
   background: rgba(251, 191, 36, 0.6);
 }
 

@@ -197,12 +197,11 @@ interface DrawnCard {
   positionLabel: 'Past' | 'Present' | 'Future';
 }
 
-type RevealStage = 0 | 1 | 2 | 3;
 type ActiveReadingView = 'past' | 'present' | 'future' | 'summary';
 
 const App: React.FC = () => {
   const [step, setStep] = useState<'intro' | 'channeling' | 'dealing' | 'drawing'>('intro');
-  const [revealStage, setRevealStage] = useState<RevealStage>(0);
+  const [revealedCards, setRevealedCards] = useState<[boolean, boolean, boolean]>([false, false, false]);
   const [activeReadingView, setActiveReadingView] = useState<ActiveReadingView | null>(null);
   const [question, setQuestion] = useState('');
   
@@ -232,18 +231,6 @@ const App: React.FC = () => {
      }
      setShuffledDeck(deckCopy);
   }, [sessionId]); 
-  
-  // This effect handles the cinematic auto-reveal sequence.
-  useEffect(() => {
-    // Only run this sequence once when the reading is first loaded.
-    if (step === 'drawing' && !isReadingLoading && reading && revealStage === 0) {
-      // Reveal only the first card automatically, then wait for user input.
-      setTimeout(() => {
-        setRevealStage(1);
-        setActiveReadingView('past');
-      }, 500);
-    }
-  }, [step, isReadingLoading, reading]);
 
   const completeChanneling = () => {
       if (channelInterval.current) clearInterval(channelInterval.current);
@@ -345,21 +332,23 @@ const App: React.FC = () => {
     });
   };
   
-  const handleNextReveal = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (revealStage === 1) {
-        setRevealStage(2);
-        setActiveReadingView('present');
-    } else if (revealStage === 2) {
-        setRevealStage(3);
-        setActiveReadingView('future');
+  const handleCardClick = (idx: number) => {
+    if (isReadingLoading || !reading) return;
+
+    if (!revealedCards[idx]) {
+      const newRevealed = [...revealedCards] as [boolean, boolean, boolean];
+      newRevealed[idx] = true;
+      setRevealedCards(newRevealed);
     }
+    
+    const position = idx === 0 ? 'past' : idx === 1 ? 'present' : 'future';
+    setActiveReadingView(position);
   };
 
   const reset = (e?: React.MouseEvent | React.TouchEvent) => {
       e?.stopPropagation();
       setStep('intro');
-      setRevealStage(0);
+      setRevealedCards([false, false, false]);
       setActiveReadingView(null);
       setQuestion('');
       setDrawnCards([null, null, null]);
@@ -560,23 +549,23 @@ const App: React.FC = () => {
 
           {/* DRAWING / REVEAL STAGE */}
           {step === 'drawing' && (
-              <div className="w-full flex flex-col items-center justify-center gap-4 md:gap-6 px-4 mt-4 md:mt-6 flex-grow">
+              <div className="w-full flex flex-col items-center justify-start gap-4 md:gap-6 px-4 mt-4 md:mt-6 flex-grow min-h-0">
                   
-                  <div className="w-full flex items-center justify-center gap-2 md:gap-4 lg:gap-6 perspective-1000 z-20">
+                  <div className="w-full flex items-center justify-center gap-2 md:gap-4 lg:gap-6 perspective-1000 z-20 flex-shrink-0">
                       {drawnCards.map((drawn, idx) => {
                           if (!drawn) return null;
                           const position = idx === 0 ? 'past' : idx === 1 ? 'present' : 'future';
-                          const isRevealed = revealStage >= idx + 1;
-                          const isActive = activeReadingView === position || (revealStage < 3 && !activeReadingView);
+                          const isRevealed = revealedCards[idx];
+                          const isActive = activeReadingView === position || activeReadingView === null;
                           
                           return (
                               <div 
                                   key={idx} 
                                   onClick={(e) => { 
                                       e.stopPropagation();
-                                      if (revealStage >= 3) setActiveReadingView(position);
+                                      handleCardClick(idx);
                                   }}
-                                  className={`flex flex-col items-center group transition-all duration-700 ${revealStage >= 3 ? 'cursor-pointer' : ''} ${isActive ? 'opacity-100 scale-100' : 'opacity-40 scale-90 blur-sm'}`}
+                                  className={`flex flex-col items-center group transition-all duration-700 ${!isReadingLoading && reading ? 'cursor-pointer' : 'cursor-wait'} ${isActive ? 'opacity-100 scale-100' : 'opacity-60 scale-95'}`}
                               >
                                   <div className={`mb-4 text-xs font-mystic uppercase tracking-widest text-amber-400 transition-all delay-700 duration-700 ${isRevealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
                                       {getPositionLabel(drawn.positionLabel)}
@@ -606,48 +595,36 @@ const App: React.FC = () => {
                           );
                       })}
                   </div>
+                  
+                  {isReadingLoading && (
+                    <div className="text-center my-8 animate-fade-in">
+                      <p className="text-sm font-mystic text-violet-300/80 animate-pulse tracking-widest">{t.loading}</p>
+                    </div>
+                  )}
 
-                  {(isReadingLoading || reading) && (
+                  {activeReadingView && reading && (
                       <div 
                           onClick={(e) => e.stopPropagation()} 
-                          className="w-full max-w-2xl md:max-w-4xl lg:max-w-5xl animate-slide-in-up-slow touch-auto pointer-events-auto"
+                          className="w-full max-w-2xl md:max-w-4xl lg:max-w-5xl animate-slide-in-up-slow touch-auto pointer-events-auto flex-grow min-h-0"
                       >
-                          <div className="relative bg-black/70 backdrop-blur-lg border border-white/10 shadow-2xl shadow-black/70 overflow-hidden flex flex-col group rounded-2xl">
+                          <div className="relative bg-black/70 backdrop-blur-lg border border-white/10 shadow-2xl shadow-black/70 overflow-hidden flex flex-col group rounded-2xl h-full">
                               
-                              <div className="relative z-20 flex items-center justify-between px-6 py-4 border-b border-white/10">
+                              <div className="relative z-20 flex items-center justify-between px-6 py-4 border-b border-white/10 flex-shrink-0">
                                   <div className="flex items-center space-x-2">
-                                      {isReadingLoading ? (
-                                          <div className="flex items-center space-x-2">
-                                              <div className="w-2 h-2 bg-violet-400 rounded-full animate-ping"></div>
-                                              <span className="text-10px uppercase tracking-widest text-violet-300">{t.loading}</span>
-                                          </div>
-                                      ) : (
-                                          <button
-                                            onClick={() => setActiveReadingView('summary')}
-                                            className={`relative flex items-center space-x-2 px-4 py-1.5 rounded-full text-xs font-mystic tracking-widest border transition-all duration-300 group
-                                              ${activeReadingView === 'summary' 
-                                                ? 'bg-amber-400/20 text-amber-300 border-amber-400/80 shadow-md shadow-amber-500/20' 
-                                                : `bg-white/5 text-zinc-400 border-transparent hover:border-white/20 hover:text-white ${revealStage === 3 ? 'animate-pulse-glow' : ''}`
-                                              }`
-                                            }
-                                          >
-                                            <SparklesIconSolid className={`w-3.5 h-3.5 transition-colors ${activeReadingView === 'summary' ? 'text-amber-400' : 'text-amber-500'}`} />
-                                            <span>{t.summary_title}</span>
-                                          </button>
-                                      )}
+                                      <button
+                                        onClick={() => setActiveReadingView('summary')}
+                                        className={`relative flex items-center space-x-2 px-4 py-1.5 rounded-full text-xs font-mystic tracking-widest border transition-all duration-300 group
+                                          ${activeReadingView === 'summary' 
+                                            ? 'bg-amber-400/20 text-amber-300 border-amber-400/80 shadow-md shadow-amber-500/20' 
+                                            : `bg-white/5 text-zinc-400 border-transparent hover:border-white/20 hover:text-white ${revealedCards.every(Boolean) ? 'animate-pulse-glow' : ''}`
+                                          }`
+                                        }
+                                      >
+                                        <SparklesIconSolid className={`w-3.5 h-3.5 transition-colors ${activeReadingView === 'summary' ? 'text-amber-400' : 'text-amber-500'}`} />
+                                        <span>{t.summary_title}</span>
+                                      </button>
                                   </div>
                                   
-                                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                                    {!isReadingLoading && revealStage > 0 && revealStage < 3 && (
-                                        <button
-                                            onClick={handleNextReveal}
-                                            className="px-6 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 rounded-full text-white text-xs font-mystic tracking-widest shadow-lg shadow-violet-500/30 hover:scale-105 transition-transform animate-fade-in"
-                                        >
-                                            {t.next}
-                                        </button>
-                                    )}
-                                  </div>
-
                                   <div className={`transition-opacity duration-500 ${activeReadingView === 'summary' ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
                                     <button 
                                         onClick={reset}
@@ -660,27 +637,19 @@ const App: React.FC = () => {
 
                               </div>
 
-                              <div className="relative z-10 overflow-y-auto p-6 flex-grow reading-panel-height">
-                                  {isReadingLoading ? (
-                                      <div className="space-y-6 pt-4 px-2 h-full flex flex-col justify-center items-center">
-                                          <div className="h-0.5 bg-gradient-to-r from-transparent via-white/20 to-transparent w-full animate-pulse"></div>
-                                          <p className="text-center text-sm font-mystic text-violet-300/80 animate-pulse tracking-widest">{t.loading}</p>
-                                          <div className="h-0.5 bg-gradient-to-r from-transparent via-white/20 to-transparent w-full animate-pulse delay-150"></div>
+                              <div className="relative z-10 overflow-y-auto p-6 reading-panel-content">
+                                  <>
+                                      <div className="flex items-center justify-center space-x-3 mb-6">
+                                          <div className="h-1px flex-grow bg-gradient-to-r from-transparent to-amber-500/50"></div>
+                                          <h3 className="text-center text-amber-300 font-mystic text-lg tracking-widest whitespace-nowrap">{getReadingTitle()}</h3>
+                                          <div className="h-1px flex-grow bg-gradient-to-l from-transparent to-amber-500/50"></div>
                                       </div>
-                                  ) : (
-                                      <>
-                                          <div className="flex items-center justify-center space-x-3 mb-6">
-                                              <div className="h-1px flex-grow bg-gradient-to-r from-transparent to-amber-500/50"></div>
-                                              <h3 className="text-center text-amber-300 font-mystic text-lg tracking-widest whitespace-nowrap">{getReadingTitle()}</h3>
-                                              <div className="h-1px flex-grow bg-gradient-to-l from-transparent to-amber-500/50"></div>
-                                          </div>
-                                          <div className="prose prose-invert max-w-none pb-4">
-                                              <p className="text-zinc-200 font-serif text-justify drop-shadow-md reading-text">
-                                                  {getCurrentReadingText()}
-                                              </p>
-                                          </div>
-                                      </>
-                                  )}
+                                      <div className="prose prose-invert max-w-none pb-4">
+                                          <p className="text-zinc-200 font-serif text-justify drop-shadow-md reading-text">
+                                              {getCurrentReadingText()}
+                                          </p>
+                                      </div>
+                                  </>
                               </div>
                           </div>
                       </div>
