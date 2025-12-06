@@ -21,7 +21,42 @@
   transform: rotateY(180deg);
 }
 
-/* Custom Animations */
+/* Custom Robust Text Glow */
+.text-glow-amber {
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.4), 0 0 20px rgba(251, 191, 36, 0.3);
+}
+
+
+/* Custom Animations - Replaces tailwindcss-animate plugin */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInUp {
+  from { 
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+.animate-slide-in-up {
+  animation: slideInUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-slide-in-up-slow {
+  animation: slideInUp 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+
 @keyframes float {
   0%, 100% { transform: translateY(0px); }
   50% { transform: translateY(-10px); }
@@ -36,8 +71,13 @@
   to { transform: rotate(360deg); }
 }
 
-.animate-spin-slow {
-  animation: spin-slow 12s linear infinite;
+/* Custom, stable animation classes to replace arbitrary values */
+.animate-spin-slow-10s {
+  animation: spin-slow 10s linear infinite;
+}
+
+.animate-spin-slow-15s-reverse {
+  animation: spin-slow 15s linear infinite reverse;
 }
 
 @keyframes shine {
@@ -88,44 +128,160 @@
     scrollbar-width: none;
 }
 
-/* Deck Fan Hover Effects */
+/* Brighter Dealing Screen Effect */
+.dealing-glow-active::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1200px;
+  height: 1200px;
+  transform: translate(-50%, -50%);
+  background-image: radial-gradient(circle, rgba(124, 58, 23, 0.25) 0%, transparent 60%);
+  filter: blur(80px);
+  opacity: 0;
+  animation: fadeIn 1.5s 0.5s ease-out forwards;
+  z-index: 0;
+}
+
+
+/* Circular Card Fan Layout */
+.deck-card-container {
+  position: relative;
+  width: 100%;
+  height: 500px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (min-width: 768px) {
+  .deck-card-container {
+    height: 800px;
+  }
+}
+
 .deck-card {
-  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
-  transform-origin: bottom center;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 90px;
+  height: 140px;
+  transform-origin: center center;
+  will-change: transform;
+  cursor: grab;
+}
+
+.card-inner-container {
+  width: 100%;
+  height: 100%;
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), filter 0.3s;
+  filter: brightness(0.85); /* Slightly dim cards by default */
 }
 
 .deck-card:hover {
-  transform: translateY(-40px) scale(1.25);
-  z-index: 100 !important;
-  margin-right: 25px;
-  margin-left: 25px;
-  filter: brightness(1.2);
-  box-shadow: 0 0 30px rgba(251, 191, 36, 0.6), 0 0 60px rgba(139, 92, 246, 0.4);
+  z-index: 50 !important;
 }
 
-.deck-card::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, transparent 50%);
-  opacity: 0;
-  transition: opacity 0.3s;
-  pointer-events: none;
-  border-radius: 0.5rem;
+.deck-card:hover .card-inner-container {
+  transform: translateY(-20px) scale(1.15);
+  filter: brightness(1.2) drop-shadow(0 0 20px rgba(251, 191, 36, 0.7));
 }
 
-.deck-card:hover::after {
-  opacity: 1;
+
+.deck-card:active {
+  cursor: grabbing;
 }
 
-.deck-tooltip {
-  opacity: 0;
-  transform: translateY(10px) translateX(-50%);
-  transition: all 0.3s ease;
-  pointer-events: none;
+
+/* Custom class to replace unstable arbitrary value for reading panel height */
+.reading-panel-height {
+  height: auto;
+  min-height: 40vh;
+  max-height: 70vh;
 }
 
-.deck-card:hover .deck-tooltip {
-  opacity: 1;
-  transform: translateY(-15px) translateX(-50%);
+@media (min-width: 1024px) { /* Corresponds to lg: breakpoint */
+  .reading-panel-height {
+    min-height: auto;
+    max-height: calc(100vh - 15rem);
+  }
+}
+
+/* Custom class to replace unstable arbitrary value for drop shadow */
+.drop-shadow-violet {
+  filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.8));
+}
+
+/* Replaces translate-y-[-2vh] */
+.header-shift-draw {
+  transform: translateY(-2vh);
+}
+
+/* Replaces w-64 h-[28rem] sm:w-72 sm:h-[32rem] */
+.tarot-card-dimensions {
+  width: 14rem; /* 224px */
+  height: 24.5rem; /* 392px */
+}
+@media (min-width: 640px) { /* sm breakpoint */
+  .tarot-card-dimensions {
+    width: 16rem; /* 256px */
+    height: 28rem; /* 448px */
+  }
+}
+
+/* Replaces duration-[1500ms] */
+.duration-1500 {
+  transition-duration: 1500ms;
+}
+
+/* Replaces translate-x-[-200%] and translate-x-[200%] */
+.translate-x-neg-full-200 {
+  transform: translateX(-200%);
+}
+.translate-x-pos-full-200 {
+  transform: translateX(200%);
+}
+
+/* === STABILITY FIXES FOR JIT COMPILER CRASHES === */
+
+/* Replaces invalid cubic-bezier() in className */
+.transition-timing-card-flip {
+  transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Replaces bg-[radial-gradient(...)] for reveal flash */
+.bg-reveal-burst {
+  background-image: radial-gradient(circle at center, rgba(255,255,255,0.3) 0%, transparent 70%);
+}
+
+/* Replaces bg-[radial-gradient(...)] for image vignette */
+.bg-vignette-overlay {
+  background-image: radial-gradient(circle at center, transparent 50%, rgba(0,0,0,0.6) 100%);
+}
+
+/* Card back color */
+.bg-card-dark {
+  background-color: #1a1a2e;
+}
+
+/* Replaces w-[300%] and h-[300%] */
+.w-300-percent { width: 300%; }
+.h-300-percent { height: 300%; }
+
+/* Replaces z-[60] and z-[100] */
+.z-60 { z-index: 60; }
+.z-100 { z-index: 100; }
+
+/* Replaces h-[1px] */
+.h-1px { height: 1px; }
+
+/* Replaces text-[9px], text-[10px], text-[11px] */
+.text-9px { font-size: 9px; }
+.text-10px { font-size: 10px; }
+.text-11px { font-size: 11px; }
+
+/* Replaces rotate-[-90deg] */
+.rotate-neg-90 {
+  transform: rotate(-90deg);
 }

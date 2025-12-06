@@ -4,19 +4,23 @@
  * @license
  * SPDX-License-Identifier: Apache-2.0
 */
-import React, { useState, useRef, useEffect } from 'react';
+// FIX: Corrected invalid import statement for React.
+import React from 'react';
 import { Starfield } from './components/Starfield';
 import { TarotCard, CardData, CardBack } from './components/TarotCard';
 import { getTarotReading, CardReadingInput, StructuredReading } from './services/gemini';
-import { SparklesIcon, ArrowPathIcon, GlobeAltIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
+import { SparklesIcon, ArrowPathIcon, GlobeAltIcon } from '@heroicons/react/24/outline';
+
+// FIX: Used `React` to destructure hooks instead of undefined `aistudio`.
+const { useState, useRef, useEffect } = React;
 
 // --- DECK GENERATION ---
 
 const SUITS = [
-  { name: 'Wands', id: 'wands', code: 'wa', color: 'from-orange-900/60 via-red-900/60 to-zinc-900', zh: '權杖', iconType: 'fire' },
-  { name: 'Cups', id: 'cups', code: 'cu', color: 'from-blue-900/60 via-cyan-900/60 to-zinc-900', zh: '聖杯', iconType: 'water' },
-  { name: 'Swords', id: 'swords', code: 'sw', color: 'from-slate-700/60 via-zinc-800/60 to-zinc-900', zh: '寶劍', iconType: 'air' },
-  { name: 'Pentacles', id: 'pentacles', code: 'pe', color: 'from-yellow-900/60 via-amber-900/60 to-zinc-900', zh: '錢幣', iconType: 'earth' }
+  { name: 'Wands', id: 'wands', code: 'wa', gradientColors: ['rgba(124, 58, 23, 0.6)', 'rgba(127, 29, 29, 0.6)', 'rgba(24, 24, 27, 1)'], zh: '權杖', iconType: 'fire' },
+  { name: 'Cups', id: 'cups', code: 'cu', gradientColors: ['rgba(30, 58, 138, 0.6)', 'rgba(22, 78, 99, 0.6)', 'rgba(24, 24, 27, 1)'], zh: '聖杯', iconType: 'water' },
+  { name: 'Swords', id: 'swords', code: 'sw', gradientColors: ['rgba(51, 65, 85, 0.6)', 'rgba(39, 39, 42, 0.6)', 'rgba(24, 24, 27, 1)'], zh: '寶劍', iconType: 'air' },
+  { name: 'Pentacles', id: 'pentacles', code: 'pe', gradientColors: ['rgba(113, 63, 18, 0.6)', 'rgba(120, 53, 15, 0.6)', 'rgba(24, 24, 27, 1)'], zh: '錢幣', iconType: 'earth' }
 ];
 
 const RANKS = [
@@ -65,11 +69,13 @@ const BASE_URL = "https://sacred-texts.com/tarot/pkt/img";
 
 function generateDeck(): CardData[] {
   const deck: CardData[] = [];
+  const majorArcanaGradient = ['rgba(88, 28, 135, 0.6)', 'rgba(112, 26, 117, 0.6)', 'rgba(24, 24, 27, 1)'];
+  
   MAJOR_ARCANA.forEach(card => {
     deck.push({
       name: card.name,
       id: card.id,
-      colors: 'from-purple-900/60 via-fuchsia-900/60 to-zinc-900',
+      gradientColors: majorArcanaGradient,
       type: 'major',
       iconType: card.iconType,
       zhName: card.zh,
@@ -81,7 +87,7 @@ function generateDeck(): CardData[] {
       deck.push({
         name: `${rank.name} of ${suit.name}`,
         id: rank.val, 
-        colors: suit.color,
+        gradientColors: suit.gradientColors,
         type: 'minor',
         suit: suit.name,
         iconType: suit.iconType,
@@ -108,7 +114,7 @@ const UI_TEXT: Record<string, any> = {
     placeholder: '輸入您心中的疑惑...',
     channeling: '注入能量中...',
     hold: '長按水晶以感應能量',
-    drag_instruction: '從下方牌堆「垂直」拖曳三張牌',
+    drag_instruction: '將三張牌拖曳至下方對應位置',
     draw_ready: '準備揭示',
     consultAgain: '開啟新解讀',
     loading: '星辰正在排列...',
@@ -136,7 +142,7 @@ const UI_TEXT: Record<string, any> = {
     placeholder: 'Type your question to the universe...',
     channeling: 'Channeling Energy...',
     hold: 'Press & Hold the Crystal to Connect',
-    drag_instruction: 'Drag 3 cards UP from the deck',
+    drag_instruction: 'Drag 3 cards to the slots below',
     draw_ready: 'Ready to Reveal',
     consultAgain: 'New Reading',
     loading: 'Aligning the stars...',
@@ -164,7 +170,7 @@ const UI_TEXT: Record<string, any> = {
     placeholder: '心にある問いを入力してください...',
     channeling: 'エネルギーを注入中...',
     hold: '水晶を長押しして接続',
-    drag_instruction: 'デッキからカードを上にドラッグ',
+    drag_instruction: '下のスロットにカードを3枚ドラッグ',
     draw_ready: '運命を明かす準備',
     consultAgain: '新たなリーディング',
     loading: '星々が整列しています...',
@@ -204,9 +210,8 @@ const App: React.FC = () => {
   const [shuffledDeck, setShuffledDeck] = useState<CardData[]>([]);
   const [drawnCards, setDrawnCards] = useState<(DrawnCard | null)[]>([null, null, null]);
   
-  const [draggedCardIndex, setDraggedCardIndex] = useState<number | null>(null);
+  const [draggedCardInfo, setDraggedCardInfo] = useState<{ card: CardData; indexInDeck: number } | null>(null);
   const [dragPosition, setDragPosition] = useState<{ x: number; y: number } | null>(null);
-  const gestureStartRef = useRef<{ x: number; y: number } | null>(null);
   
   const [reading, setReading] = useState<StructuredReading | null>(null);
   const [isReadingLoading, setIsReadingLoading] = useState(false);
@@ -218,7 +223,6 @@ const App: React.FC = () => {
 
   const t = UI_TEXT[language] || UI_TEXT['en'];
   const channelInterval = useRef<number | null>(null);
-  const deckRef = useRef<HTMLDivElement>(null);
   const slotRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
@@ -229,8 +233,15 @@ const App: React.FC = () => {
      }
      setShuffledDeck(deckCopy);
   }, [sessionId]); 
+  
+  const completeChanneling = () => {
+      if (channelInterval.current) clearInterval(channelInterval.current);
+      setDrawnCards([null, null, null]);
+      setStep('dealing');
+  };
 
   // --- INTERACTION HANDLERS ---
+  const allSlotsFilled = drawnCards.every(c => c !== null);
 
   const startChanneling = () => {
     if (step !== 'intro') return;
@@ -254,88 +265,56 @@ const App: React.FC = () => {
     }
   };
 
-  const completeChanneling = () => {
-      if (channelInterval.current) clearInterval(channelInterval.current);
-      setDrawnCards([null, null, null]);
-      setStep('dealing');
-  };
-
   // --- GESTURE LOGIC ---
-  const handlePointerDown = (e: React.PointerEvent, deckIndex: number) => {
-      if (!e.isPrimary) return;
-      gestureStartRef.current = { x: e.clientX, y: e.clientY };
+  const handleCardPointerDown = (e: React.PointerEvent, card: CardData, indexInDeck: number) => {
+    if (!e.isPrimary || allSlotsFilled || draggedCardInfo) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setDraggedCardInfo({ card, indexInDeck });
+    setDragPosition({ x: e.clientX, y: e.clientY });
   };
 
-  const handlePointerMove = (e: React.PointerEvent, deckIndex: number) => {
-      if (!gestureStartRef.current) return;
-      
-      const deltaX = Math.abs(e.clientX - gestureStartRef.current.x);
-      const deltaY = Math.abs(e.clientY - gestureStartRef.current.y);
-
-      if (draggedCardIndex !== null) {
-          e.preventDefault();
-          e.stopPropagation();
+  const handleGlobalPointerMove = (e: React.PointerEvent) => {
+      if (draggedCardInfo) {
           setDragPosition({ x: e.clientX, y: e.clientY });
-          return;
-      }
-
-      // Threshold of 10px to ignore jitter
-      if (deltaY > 10 && deltaY > deltaX) {
-          e.preventDefault(); // Prevent scroll now
-          setDraggedCardIndex(deckIndex);
-          setDragPosition({ x: e.clientX, y: e.clientY });
-      } else if (deltaX > 10) {
-          gestureStartRef.current = null; 
-      }
-  };
-
-  const handlePointerUp = (e: React.PointerEvent) => {
-      gestureStartRef.current = null;
-
-      if (draggedCardIndex !== null) {
-          e.preventDefault();
-          
-          let droppedSlot = -1;
-          
-          slotRefs.current.forEach((ref, index) => {
-              if (ref) {
-                  const rect = ref.getBoundingClientRect();
-                  if (
-                      e.clientX >= rect.left && 
-                      e.clientX <= rect.right && 
-                      e.clientY >= rect.top && 
-                      e.clientY <= rect.bottom
-                  ) {
-                      droppedSlot = index;
-                  }
-              }
-          });
-
-          if (droppedSlot !== -1 && !drawnCards[droppedSlot]) {
-             const card = shuffledDeck[draggedCardIndex];
-             const reversed = Math.random() < 0.2;
-             
-             const newDrawn = [...drawnCards];
-             newDrawn[droppedSlot] = {
-                 card: card,
-                 reversed: reversed,
-                 positionLabel: droppedSlot === 0 ? 'Past' : droppedSlot === 1 ? 'Present' : 'Future'
-             };
-             setDrawnCards(newDrawn);
-             
-             const newDeck = [...shuffledDeck];
-             newDeck.splice(draggedCardIndex, 1);
-             setShuffledDeck(newDeck);
-          }
-          
-          setDraggedCardIndex(null);
-          setDragPosition(null);
       }
   };
 
   const handleGlobalPointerUp = (e: React.PointerEvent) => {
-    handlePointerUp(e); // Handles card dragging logic
-    stopChanneling(); // Handles releasing the channeling crystal
+    stopChanneling(); 
+    
+    if (draggedCardInfo) {
+        let droppedSlot = -1;
+        slotRefs.current.forEach((ref, index) => {
+            if (ref) {
+                const rect = ref.getBoundingClientRect();
+                if (
+                    e.clientX >= rect.left && e.clientX <= rect.right &&
+                    e.clientY >= rect.top && e.clientY <= rect.bottom
+                ) {
+                    droppedSlot = index;
+                }
+            }
+        });
+
+        if (droppedSlot !== -1 && !drawnCards[droppedSlot]) {
+           const { card } = draggedCardInfo;
+           const reversed = Math.random() < 0.2;
+           
+           const newDrawn = [...drawnCards];
+           newDrawn[droppedSlot] = {
+               card,
+               reversed,
+               positionLabel: droppedSlot === 0 ? 'Past' : droppedSlot === 1 ? 'Present' : 'Future'
+           };
+           setDrawnCards(newDrawn);
+           
+           setShuffledDeck(prevDeck => prevDeck.filter(c => c.image !== card.image));
+        }
+        
+        setDraggedCardInfo(null);
+        setDragPosition(null);
+    }
   };
 
   const finishDealing = () => {
@@ -358,7 +337,7 @@ const App: React.FC = () => {
   };
 
   const nextReveal = (e?: React.MouseEvent | React.TouchEvent) => {
-      e?.stopPropagation(); // Prevent background click conflict
+      e?.stopPropagation(); 
       if (revealStage < 4) {
           setRevealStage(prev => (prev + 1) as RevealStage);
       }
@@ -375,7 +354,6 @@ const App: React.FC = () => {
       setSessionId(id => id + 1);
   };
 
-  // Background Tap to Next
   const handleBackgroundTap = () => {
       if (step === 'drawing' && revealStage > 0 && revealStage < 4 && !isReadingLoading) {
           nextReveal();
@@ -408,19 +386,17 @@ const App: React.FC = () => {
       }
   };
 
-  const allSlotsFilled = drawnCards.every(c => c !== null);
-
   return (
     <div 
-      className="relative min-h-screen flex flex-col items-center select-none overflow-x-hidden overflow-y-auto touch-none cursor-pointer" 
+      className={`relative min-h-screen flex flex-col items-center select-none overflow-x-hidden overflow-y-auto touch-none cursor-default ${step === 'dealing' ? 'dealing-glow-active' : ''}`}
+      onPointerMove={handleGlobalPointerMove}
       onPointerUp={handleGlobalPointerUp}
-      // Global click for background advancement
       onClick={handleBackgroundTap}
     >
       <Starfield />
 
       {/* LANGUAGE SELECTOR */}
-      <div className="absolute top-4 right-4 z-[60]">
+      <div className="absolute top-4 right-4 z-60">
         <div className="relative">
           <button 
             onClick={(e) => { e.stopPropagation(); setShowLangMenu(!showLangMenu); }}
@@ -431,7 +407,7 @@ const App: React.FC = () => {
           </button>
           
           {showLangMenu && (
-            <div className="absolute top-full right-0 mt-3 w-40 bg-black/80 backdrop-blur-xl border border-white/10 rounded-xl shadow-[0_0_30px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col z-50 animate-in fade-in zoom-in-95 duration-200">
+            <div className="absolute top-full right-0 mt-3 w-40 bg-black/80 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl shadow-black/50 overflow-hidden flex flex-col z-50 animate-fade-in">
               {LANGUAGES.map((lang) => (
                 <button
                   key={lang.code}
@@ -447,171 +423,230 @@ const App: React.FC = () => {
       </div>
 
       {/* HEADER */}
-      <div className={`transition-all duration-1000 mt-6 mb-2 text-center z-10 w-full ${step === 'drawing' ? 'scale-75 translate-y-[-1vh]' : 'scale-100'} ${(step === 'dealing') ? 'opacity-80 scale-90' : ''}`}>
-          <h1 className="text-3xl md:text-5xl font-mystic text-transparent bg-clip-text bg-gradient-to-b from-amber-100 via-yellow-200 to-amber-500 drop-shadow-[0_0_25px_rgba(251,191,36,0.4)] tracking-wide">
+      <header className={`transition-all duration-1000 mt-6 mb-2 text-center z-10 w-full ${step === 'drawing' ? 'scale-75 header-shift-draw' : 'scale-100'} ${(step === 'dealing') ? 'opacity-80 scale-90' : ''}`}>
+          <h1 className="text-3xl md:text-5xl font-mystic text-transparent bg-clip-text bg-gradient-to-b from-amber-100 via-yellow-200 to-amber-500 text-glow-amber tracking-wide">
               {t.title}
           </h1>
-          <p className="text-amber-100/40 font-serif italic mt-2 text-xs tracking-[0.3em] uppercase">
+          <p className="text-amber-100/40 font-serif italic mt-2 text-xs tracking-widest uppercase">
               {t.subtitle}
           </p>
-      </div>
-
+      </header>
+      
       {/* MAIN CONTENT */}
-      {/* Added pb to ensure cards aren't covered by bottom sheet on mobile */}
-      <div className={`relative z-10 flex flex-col items-center w-full max-w-6xl flex-grow ${step === 'intro' ? 'justify-center' : 'justify-start'} ${step === 'drawing' ? 'pb-[50vh] md:pb-0' : ''}`}>
+      <main className={`relative z-10 flex flex-col items-center w-full max-w-7xl flex-grow ${step === 'intro' || step === 'channeling' ? 'justify-center' : 'justify-start'} ${step === 'drawing' ? 'pb-8' : ''}`}>
 
           {/* DEALING PHASE UI */}
           {step === 'dealing' && (
-             <div className="w-full flex flex-col items-center justify-between h-full py-8 animate-in fade-in duration-700">
+             <div className="w-full flex flex-col items-center justify-center h-full pt-8 animate-fade-in">
                  
-                 {/* 1. TOP: Slots */}
-                 <div className="flex justify-center gap-2 md:gap-12 w-full px-4 mb-auto pt-4 md:pt-8">
-                     {[0, 1, 2].map((idx) => (
-                         <div 
-                            key={idx}
-                            ref={(el) => { slotRefs.current[idx] = el }}
-                            className={`
-                              relative w-24 h-40 md:w-48 md:h-80 rounded-xl border-2 transition-all duration-300
-                              ${drawnCards[idx] 
-                                ? 'border-amber-500/50 bg-black/40 shadow-[0_0_30px_rgba(217,119,6,0.3)]' 
-                                : 'border-dashed border-white/10 bg-white/5 hover:border-white/30'
-                              }
-                              ${draggedCardIndex !== null ? 'scale-105 border-violet-400/50' : ''}
-                            `}
-                         >
-                            <div className="absolute -top-6 md:-top-8 left-0 right-0 text-center">
-                                <span className="text-[9px] md:text-xs uppercase tracking-[0.2em] text-zinc-500 font-mystic">
-                                    {idx === 0 ? t.pos_past : idx === 1 ? t.pos_present : t.pos_future}
-                                </span>
+                <div className="deck-card-container">
+                    {shuffledDeck.slice(0, 42).map((card, i) => {
+                        const totalCards = Math.min(42, shuffledDeck.length);
+                        const angleOffset = -Math.PI / 2;
+                        const angle = angleOffset + (i / totalCards) * 2 * Math.PI;
+                        
+                        const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+                        const radius = isMobile ? 220 : 450;
+                        const ellipseFactor = 0.5;
+                        
+                        const x = radius * Math.cos(angle);
+                        const y = radius * Math.sin(angle) * ellipseFactor;
+
+                        const rotation = (angle * 180 / Math.PI) + 90;
+
+                        const isDragged = draggedCardInfo?.indexInDeck === i;
+
+                        return (
+                            <div
+                                key={card.image || card.name + i}
+                                className={`deck-card group ${isDragged ? 'opacity-0' : ''}`}
+                                style={{
+                                    transform: `translate(-50%, -50%) translate(${x}px, ${y}px) rotate(${rotation}deg)`,
+                                    zIndex: i,
+                                }}
+                                onPointerDown={(e) => handleCardPointerDown(e, card, i)}
+                            >
+                                <div className="card-inner-container">
+                                    <CardBack small />
+                                </div>
                             </div>
-                            {drawnCards[idx] ? (
-                                <div className="w-full h-full p-1 md:p-2">
-                                   <CardBack className="w-full h-full" />
+                        );
+                    })}
+                    
+                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                        <div className="flex justify-center gap-2 md:gap-8 w-full px-4 pointer-events-auto">
+                            {[0, 1, 2].map((idx) => (
+                                <div 
+                                   key={idx}
+                                   ref={(el) => { slotRefs.current[idx] = el }}
+                                   className={`
+                                     relative w-24 h-40 rounded-xl border-2 transition-all duration-300
+                                     ${drawnCards[idx] 
+                                       ? 'border-amber-500/50 bg-black/40 shadow-lg shadow-amber-600/20' 
+                                       : 'border-dashed border-white/10 bg-white/5 hover:border-white/30'
+                                     }
+                                     ${draggedCardInfo !== null ? 'scale-105 border-violet-400/50' : ''}
+                                   `}
+                                >
+                                   <div className="absolute -top-6 left-0 right-0 text-center">
+                                       <span className="text-9px md:text-xs uppercase tracking-wider text-zinc-500 font-mystic">
+                                           {idx === 0 ? t.pos_past : idx === 1 ? t.pos_present : t.pos_future}
+                                       </span>
+                                   </div>
+                                   {drawnCards[idx] ? (
+                                       <div className="w-full h-full p-1">
+                                          <CardBack className="w-full h-full" />
+                                       </div>
+                                   ) : (
+                                       <div className="absolute inset-0 flex items-center justify-center opacity-30">
+                                          <div className="w-8 h-8 rounded-full border border-white/20"></div>
+                                       </div>
+                                   )}
                                 </div>
-                            ) : (
-                                <div className="absolute inset-0 flex items-center justify-center opacity-30">
-                                   <div className="w-8 h-8 md:w-12 md:h-12 rounded-full border border-white/20"></div>
-                                </div>
-                            )}
-                         </div>
-                     ))}
-                 </div>
-                 
-                 {/* Instruction */}
-                 <div className="my-4 md:my-8 pointer-events-none z-20 pb-48"> 
-                     {!allSlotsFilled ? (
-                        <p className="text-amber-200/80 font-mystic text-xs md:text-sm uppercase tracking-widest animate-pulse bg-black/50 px-6 py-2 rounded-full border border-amber-500/20 backdrop-blur-sm">
-                            {t.drag_instruction}
-                        </p>
-                     ) : (
-                        <button 
-                          onClick={(e) => {e.stopPropagation(); finishDealing();}}
-                          className="pointer-events-auto px-8 py-3 bg-gradient-to-r from-amber-600 to-yellow-600 rounded-full text-white font-mystic tracking-widest shadow-[0_0_30px_rgba(217,119,6,0.6)] hover:scale-105 transition-transform animate-in zoom-in"
-                        >
-                           {t.draw_ready}
-                        </button>
-                     )}
-                 </div>
-
-                 {/* 2. BOTTOM: Deck Fan (Fixed to Bottom for Mobile) */}
-                 <div className="fixed bottom-0 left-0 right-0 h-48 md:h-80 z-40">
-                    <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-transparent to-black/30 pointer-events-none"></div>
-                    <div 
-                      ref={deckRef}
-                      className="absolute inset-0 overflow-x-auto overflow-y-clip flex items-end px-8 pt-20 pb-4 scrollbar-hide snap-x touch-pan-x"
-                    >
-                        {shuffledDeck.slice(0, 40).map((card, i) => (
-                           <div 
-                             key={card.id + i}
-                             onPointerDown={(e) => handlePointerDown(e, i)}
-                             onPointerMove={(e) => handlePointerMove(e, i)}
-                             className="group flex-shrink-0 w-20 h-32 md:w-28 md:h-44 -mr-12 md:-mr-12 relative cursor-grab active:cursor-grabbing deck-card transition-transform duration-200 origin-bottom"
-                             style={{ zIndex: i, marginBottom: '1rem' }}
-                           >
-                              <CardBack small />
-                              <div className="absolute -top-12 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 backdrop-blur text-amber-100 text-[10px] px-2 py-1 rounded border border-amber-500/30 whitespace-nowrap pointer-events-none deck-tooltip z-50">
-                                {getCardDisplayName(card)}
-                              </div>
-                           </div>
-                        ))}
-                         <div className="w-16 flex-shrink-0"></div>
+                            ))}
+                        </div>
+                        
+                        <div className="mt-8 pointer-events-auto z-20">
+                           {!allSlotsFilled ? (
+                              <p className="text-amber-200/80 font-mystic text-xs md:text-sm uppercase tracking-widest animate-pulse bg-black/50 px-6 py-2 rounded-full border border-amber-500/20 backdrop-blur-sm pointer-events-none">
+                                  {t.drag_instruction}
+                              </p>
+                           ) : (
+                              <button 
+                                onClick={(e) => {e.stopPropagation(); finishDealing();}}
+                                className="px-8 py-3 bg-gradient-to-r from-amber-600 to-yellow-600 rounded-full text-white font-mystic tracking-widest shadow-lg shadow-amber-500/50 hover:scale-105 transition-transform"
+                              >
+                                 {t.draw_ready}
+                              </button>
+                           )}
+                        </div>
                     </div>
-                 </div>
-
+                </div>
              </div>
           )}
 
           {/* GHOST CARD (When Dragging) */}
-          {draggedCardIndex !== null && dragPosition && (
+          {draggedCardInfo && dragPosition && (
              <div 
-               className="fixed w-20 h-32 md:w-24 md:h-40 z-[9999] pointer-events-none opacity-90 shadow-[0_0_30px_rgba(251,191,36,0.5)] rotate-3"
+               className="fixed w-24 h-40 md:w-28 md:h-44 z-100 pointer-events-none opacity-90 shadow-2xl shadow-amber-500/50 rotate-3"
                style={{ 
                    left: dragPosition.x, 
                    top: dragPosition.y,
                    transform: 'translate(-50%, -50%)'
                }}
              >
-                 <CardBack small />
+                 <CardBack />
              </div>
           )}
 
-          {/* REVEAL STAGE UI */}
-          <div 
-            className={`transition-all duration-1000 w-full flex flex-col md:flex-row items-center justify-center gap-8 md:gap-12 perspective-1000 mt-8 mb-4 z-20 ${step === 'drawing' ? 'scale-100 opacity-100' : 'hidden'}`}
-          >
-             
-             {drawnCards.map((drawn, idx) => {
-               if (!drawn) return null;
-               const isRevealed = revealStage >= idx + 1;
-               const isFocused = (revealStage === idx + 1) || (revealStage as number) === 4;
-               const mobileVisibility = (isFocused || revealStage === 4) ? 'flex' : 'hidden md:flex';
+          {/* DRAWING / REVEAL STAGE */}
+          {step === 'drawing' && (
+              <div className="w-full flex flex-col items-center justify-center gap-8 md:gap-12 px-4 mt-8 flex-grow">
+                  
+                  <div className="w-full flex items-center justify-center gap-2 md:gap-4 lg:gap-6 perspective-1000 z-20">
+                      {drawnCards.map((drawn, idx) => {
+                          if (!drawn) return null;
+                          const isRevealed = revealStage >= idx + 1;
+                          const isFocused = (revealStage === idx + 1) || (revealStage as number) === 4;
+                          
+                          return (
+                              <div 
+                                  key={idx} 
+                                  onClick={(e) => { 
+                                      if (isFocused && revealStage < 4) {
+                                          e.stopPropagation();
+                                          nextReveal();
+                                      }
+                                  }}
+                                  className={`flex flex-col items-center group transition-all duration-700 ${revealStage === 4 ? 'opacity-100 scale-100' : isFocused ? 'opacity-100 scale-100' : 'opacity-40 scale-90 blur-sm'}`}
+                              >
+                                  <div className={`mb-4 text-xs font-mystic uppercase tracking-widest text-amber-400 transition-all delay-700 duration-700 ${isRevealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+                                      {getPositionLabel(drawn.positionLabel)}
+                                  </div>
+                                  <TarotCard 
+                                      card={drawn.card} 
+                                      isRevealed={isRevealed} 
+                                      isDrawing={true} 
+                                      isReversed={drawn.reversed}
+                                      index={idx}
+                                  />
+                                  {isRevealed && (
+                                      <div className={`text-center mt-6 transition-all duration-700 delay-500 opacity-0 animate-slide-in-up`} style={{animationDelay: `500ms`}}>
+                                          <h4 className="text-amber-100 font-mystic text-xl drop-shadow-md bg-gradient-to-r from-amber-200 to-yellow-400 bg-clip-text text-transparent">
+                                              {getCardDisplayName(drawn.card)}
+                                          </h4>
+                                          <div className="flex items-center justify-center gap-2 mt-2">
+                                              <span className="h-1px w-4 bg-amber-500/50"></span>
+                                              <p className="text-10px text-amber-500/80 uppercase tracking-wider font-semibold">
+                                                  {drawn.reversed ? t.reversed : t.upright}
+                                              </p>
+                                              <span className="h-1px w-4 bg-amber-500/50"></span>
+                                          </div>
+                                      </div>
+                                  )}
+                              </div>
+                          );
+                      })}
+                  </div>
 
-               return (
-                 <div 
-                    key={idx} 
-                    // Add click handler to Card container for "Tap to Reveal"
-                    onClick={(e) => { 
-                        // If this card is the current focus, tap it to go next
-                        if (isFocused && revealStage < 4) {
-                            e.stopPropagation();
-                            nextReveal();
-                        }
-                    }}
-                    className={`flex-col items-center group transition-all duration-700 ${mobileVisibility} ${revealStage === 4 ? 'md:opacity-100 md:scale-100 opacity-100 scale-90' : isFocused ? 'opacity-100 scale-100' : 'opacity-40 scale-90 blur-sm'}`}
-                 >
-                    <div className={`mb-4 text-xs font-mystic uppercase tracking-[0.25em] text-amber-400 transition-all delay-700 duration-700 ${isRevealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                       {getPositionLabel(drawn.positionLabel)}
-                    </div>
-                    <TarotCard 
-                      card={drawn.card} 
-                      isRevealed={isRevealed} 
-                      isDrawing={true} 
-                      isReversed={drawn.reversed}
-                      index={idx}
-                    />
-                    {isRevealed && (
-                       <div className={`text-center mt-6 transition-all duration-700 delay-500 opacity-0 animate-in fade-in slide-in-from-bottom-2 fill-mode-forwards`} style={{animationDelay: `500ms`}}>
-                           <h4 className="text-amber-100 font-mystic text-xl drop-shadow-md bg-gradient-to-r from-amber-200 to-yellow-400 bg-clip-text text-transparent">
-                               {getCardDisplayName(drawn.card)}
-                           </h4>
-                           <div className="flex items-center justify-center gap-2 mt-2">
-                             <span className="h-[1px] w-4 bg-amber-500/50"></span>
-                             <p className="text-amber-500/80 text-[10px] uppercase tracking-[0.2em] font-semibold">
-                                 {drawn.reversed ? t.reversed : t.upright}
-                             </p>
-                             <span className="h-[1px] w-4 bg-amber-500/50"></span>
-                           </div>
-                       </div>
-                    )}
-                 </div>
-               );
-             })}
-          </div>
+                  {revealStage > 0 && (
+                      <div 
+                          onClick={(e) => e.stopPropagation()} 
+                          className="w-full max-w-2xl animate-slide-in-up-slow touch-auto pointer-events-auto"
+                      >
+                          <div className="relative bg-black/70 backdrop-blur-lg border border-white/10 shadow-2xl shadow-black/70 overflow-hidden flex flex-col group rounded-2xl">
+                              
+                              <div className="relative z-20 flex items-center justify-between px-6 py-4 border-b border-white/10">
+                                  <div className="flex items-center space-x-2">
+                                      {isReadingLoading ? (
+                                          <div className="flex items-center space-x-2">
+                                              <div className="w-2 h-2 bg-violet-400 rounded-full animate-ping"></div>
+                                              <span className="text-10px uppercase tracking-widest text-violet-300">{t.loading}</span>
+                                          </div>
+                                      ) : (
+                                          <span className="text-10px uppercase tracking-widest text-zinc-400">{revealStage < 4 ? t.tap_anywhere : ' '}</span>
+                                      )}
+                                  </div>
+                                  <button 
+                                      onClick={reset}
+                                      className="group relative px-5 py-2 bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-400 hover:to-amber-400 rounded-full border border-amber-600/80 shadow-lg shadow-black/50 transition-all duration-300 flex items-center space-x-2 active:scale-95"
+                                  >
+                                      <ArrowPathIcon className="w-3 h-3 text-zinc-800 group-hover:rotate-180 transition-transform duration-500" />
+                                      <span className="uppercase tracking-widest text-10px font-bold text-zinc-900">{t.consultAgain}</span>
+                                  </button>
+                              </div>
+
+                              <div className="relative z-10 overflow-y-auto p-6 flex-grow reading-panel-height">
+                                  {isReadingLoading ? (
+                                      <div className="space-y-6 pt-4 px-2 h-full flex flex-col justify-center items-center">
+                                          <div className="h-0.5 bg-gradient-to-r from-transparent via-white/20 to-transparent w-full animate-pulse"></div>
+                                          <p className="text-center text-sm font-mystic text-violet-300/80 animate-pulse tracking-widest">{t.loading}</p>
+                                          <div className="h-0.5 bg-gradient-to-r from-transparent via-white/20 to-transparent w-full animate-pulse delay-150"></div>
+                                      </div>
+                                  ) : (
+                                      <>
+                                          <div className="flex items-center justify-center space-x-3 mb-6">
+                                              <div className="h-1px flex-grow bg-gradient-to-r from-transparent to-amber-500/50"></div>
+                                              <h3 className="text-center text-amber-300 font-mystic text-lg tracking-widest whitespace-nowrap">{t.summary_title}</h3>
+                                              <div className="h-1px flex-grow bg-gradient-to-l from-transparent to-amber-500/50"></div>
+                                          </div>
+                                          <div className="prose prose-invert max-w-none pb-4">
+                                              <p className="text-zinc-200 leading-8 text-lg font-serif text-justify drop-shadow-md">
+                                                  {getCurrentReadingText()}
+                                              </p>
+                                          </div>
+                                      </>
+                                  )}
+                              </div>
+                          </div>
+                      </div>
+                  )}
+              </div>
+          )}
 
           {/* INTRO: Question & Channeling */}
           {step === 'intro' || step === 'channeling' ? (
               <div className={`flex flex-col items-center space-y-10 w-full max-w-lg transition-all duration-700 mt-8 mb-20 ${step === 'intro' || step === 'channeling' ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-20 blur-lg pointer-events-none'}`}>
-                  {/* ... Same Intro Content ... */}
                   <div className="w-full space-y-4 px-4">
                       <div className="relative group z-20">
                           <div className="absolute inset-0 bg-gradient-to-r from-violet-600/50 to-indigo-600/50 rounded-2xl blur-xl opacity-30 group-hover:opacity-50 transition-opacity duration-500"></div>
@@ -634,7 +669,7 @@ const App: React.FC = () => {
                              <button 
                                 key={i}
                                 onClick={(e) => { e.stopPropagation(); setQuestion(q); }}
-                                className="px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/5 hover:border-violet-400/30 text-[11px] text-zinc-400 hover:text-violet-200 transition-all duration-300 cursor-pointer active:scale-95"
+                                className="px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/5 hover:border-violet-400/30 text-11px text-zinc-400 hover:text-violet-200 transition-all duration-300 cursor-pointer active:scale-95"
                              >
                                 {q}
                              </button>
@@ -643,10 +678,10 @@ const App: React.FC = () => {
                   </div>
 
                   <div className="relative w-64 h-64 flex items-center justify-center">
-                       <div className="absolute w-56 h-56 rounded-full border border-violet-500/10 animate-[spin-slow_10s_linear_infinite]"></div>
-                       <div className="absolute w-48 h-48 rounded-full border border-amber-500/10 animate-[spin-slow_15s_linear_infinite_reverse]"></div>
+                       <div className="absolute w-56 h-56 rounded-full border border-violet-500/10 animate-spin-slow-10s"></div>
+                       <div className="absolute w-48 h-48 rounded-full border border-amber-500/10 animate-spin-slow-15s-reverse"></div>
 
-                       <div className="absolute w-36 h-36 rotate-[-90deg]">
+                       <div className="absolute w-36 h-36 rotate-neg-90">
                           <svg className="w-full h-full">
                             <circle
                               cx="50%"
@@ -657,7 +692,7 @@ const App: React.FC = () => {
                               strokeWidth="2"
                               strokeDasharray="300" 
                               strokeDashoffset={300 - (channelingProgress / 100) * 300}
-                              className="transition-all duration-75 ease-linear drop-shadow-[0_0_8px_rgba(139,92,246,0.8)]"
+                              className="transition-all duration-75 ease-linear drop-shadow-violet"
                             />
                           </svg>
                        </div>
@@ -667,7 +702,7 @@ const App: React.FC = () => {
                          className="relative w-28 h-28 rounded-full flex items-center justify-center group cursor-pointer select-none outline-none z-10 active:scale-90 transition-transform duration-150"
                          style={{ WebkitTapHighlightColor: 'transparent' }}
                        >
-                           <div className="absolute inset-0 rounded-full bg-gradient-to-br from-zinc-800 to-black border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.5)] group-active:scale-95 transition-transform duration-200"></div>
+                           <div className="absolute inset-0 rounded-full bg-gradient-to-br from-zinc-800 to-black border border-white/10 shadow-xl shadow-black/50 group-active:scale-95 transition-transform duration-200"></div>
                            <div className={`absolute inset-0 rounded-full bg-violet-600/30 blur-md transition-opacity duration-500 ${step === 'channeling' ? 'opacity-100 scale-110' : 'opacity-0 scale-100'}`}></div>
                            <div className="relative z-10 flex flex-col items-center space-y-1">
                                <SparklesIcon className={`w-8 h-8 text-zinc-400 group-hover:text-amber-200 transition-colors duration-500 ${step === 'channeling' ? 'text-violet-200 animate-pulse' : ''}`} />
@@ -675,104 +710,13 @@ const App: React.FC = () => {
                        </button>
                   </div>
                   
-                  <p className="text-zinc-500 text-xs font-mystic uppercase tracking-[0.2em] animate-pulse text-center">
+                  <p className="text-zinc-500 text-xs font-mystic uppercase tracking-wider animate-pulse text-center">
                       {step === 'channeling' ? t.channeling : t.hold}
                   </p>
               </div>
           ) : null}
 
-          {/* TEXT REVELATION AREA (FIXED BOTTOM SHEET ON MOBILE) */}
-          {step === 'drawing' && revealStage > 0 && (
-              <div 
-                  onClick={(e) => e.stopPropagation()} // Stop background tap when clicking text area
-                  className={`
-                    w-full animate-in fade-in slide-in-from-bottom-8 duration-1000 
-                    /* Mobile: Fixed Bottom, HIGH Z-INDEX */
-                    fixed bottom-0 left-0 right-0 z-[100] touch-auto pointer-events-auto
-                    /* Desktop: Relative */
-                    md:relative md:bottom-auto md:left-auto md:right-auto md:max-w-2xl md:mt-8 md:mb-4 md:mx-4
-                    flex flex-col
-              `}>
-                  <div className={`
-                    relative bg-black/80 backdrop-blur-xl 
-                    border-t border-white/20 md:border md:border-white/10 md:rounded-2xl
-                    shadow-[0_-10px_50px_rgba(0,0,0,0.9)] 
-                    overflow-hidden flex flex-col group 
-                    h-[40vh] md:h-auto md:max-h-[60vh]
-                    rounded-t-3xl 
-                  `}>
-                      
-                      <div className="absolute -top-20 -right-20 w-60 h-60 bg-violet-600/20 rounded-full blur-[80px] group-hover:bg-violet-600/30 transition-colors duration-1000 pointer-events-none"></div>
-                      <div className="absolute -bottom-20 -left-20 w-60 h-60 bg-amber-600/10 rounded-full blur-[80px] pointer-events-none"></div>
-
-                      {/* HEADER ROW WITH CONTROLS */}
-                      <div className="relative z-20 flex items-center justify-between px-6 py-4 border-b border-white/10 bg-black/40 backdrop-blur-md">
-                           {/* HEADER TITLE / STATUS */}
-                           <div className="flex items-center space-x-2">
-                              {isReadingLoading ? (
-                                  <div className="flex items-center space-x-2">
-                                      <div className="w-2 h-2 bg-violet-400 rounded-full animate-ping"></div>
-                                      <span className="text-[10px] uppercase tracking-widest text-violet-300">{t.loading}</span>
-                                  </div>
-                              ) : (
-                                  <span className="text-[10px] uppercase tracking-widest text-zinc-400">{t.tap_anywhere}</span>
-                              )}
-                           </div>
-
-                           {/* BUTTONS */}
-                           <div className="flex space-x-2">
-                             {revealStage < 4 ? (
-                                  <button 
-                                    onClick={nextReveal}
-                                    disabled={isReadingLoading}
-                                    className={`
-                                        group relative px-5 py-2 rounded-full overflow-hidden transition-all duration-300 flex items-center space-x-2
-                                        ${isReadingLoading ? 'bg-white/5 cursor-not-allowed opacity-50' : 'bg-white/10 hover:bg-white/20 shadow-lg border border-white/20 active:scale-95'}
-                                    `}
-                                  >
-                                      <span className="uppercase tracking-widest text-[10px] font-bold text-white">{t.next}</span>
-                                      <ChevronRightIcon className="w-3 h-3 text-white group-hover:translate-x-1 transition-transform" />
-                                  </button>
-                              ) : (
-                                  <button 
-                                    onClick={reset}
-                                    className="group relative px-5 py-2 bg-amber-500/20 hover:bg-amber-500/30 backdrop-blur-md rounded-full border border-amber-500/40 shadow-lg transition-all duration-300 flex items-center space-x-2 active:scale-95"
-                                  >
-                                      <ArrowPathIcon className="w-3 h-3 text-amber-300 group-hover:rotate-180 transition-transform duration-500" />
-                                      <span className="uppercase tracking-widest text-[10px] font-bold text-amber-200">{t.consultAgain}</span>
-                                  </button>
-                              )}
-                          </div>
-                      </div>
-
-                      {/* TEXT CONTENT */}
-                      <div className="relative z-10 overflow-y-auto p-6 flex-grow min-h-0 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
-                          {revealStage === 4 && (
-                               <div className="flex items-center justify-center space-x-3 mb-6">
-                                   <div className="h-[1px] w-12 bg-gradient-to-r from-transparent to-amber-500"></div>
-                                   <h3 className="text-center text-amber-300 font-mystic text-xl tracking-widest">{t.summary_title}</h3>
-                                   <div className="h-[1px] w-12 bg-gradient-to-l from-transparent to-amber-500"></div>
-                               </div>
-                           )}
-
-                           {isReadingLoading ? (
-                               <div className="space-y-6 pt-4 px-2">
-                                   <div className="h-0.5 bg-gradient-to-r from-transparent via-white/20 to-transparent w-full animate-pulse"></div>
-                                   <p className="text-center text-sm font-mystic text-violet-300/80 animate-pulse tracking-widest">{t.loading}</p>
-                                   <div className="h-0.5 bg-gradient-to-r from-transparent via-white/20 to-transparent w-full animate-pulse delay-150"></div>
-                               </div>
-                           ) : (
-                               <div className="prose prose-invert max-w-none pb-4">
-                                  <p className="text-zinc-200 leading-8 text-lg font-serif text-justify drop-shadow-md">
-                                    {getCurrentReadingText()}
-                                  </p>
-                               </div>
-                           )}
-                      </div>
-                  </div>
-              </div>
-          )}
-      </div>
+      </main>
     </div>
   );
 };

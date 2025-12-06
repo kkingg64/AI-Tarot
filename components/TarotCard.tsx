@@ -20,7 +20,7 @@ import {
 export interface CardData {
   name: string;
   id: string; 
-  colors: string;
+  gradientColors: string[];
   type: 'major' | 'minor';
   suit?: string;
   iconType: string;
@@ -38,7 +38,7 @@ interface TarotCardProps {
 }
 
 const getIcon = (iconType: string) => {
-  const props = { className: "w-12 h-12 sm:w-16 sm:h-16 text-white/90 drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]" };
+  const props = { className: "w-12 h-12 sm:w-16 sm:h-16 text-white/90 drop-shadow-lg" };
   switch(iconType) {
     case 'sun': return <SunIcon {...props} className={props.className + " text-yellow-200"} />;
     case 'moon': return <MoonIcon {...props} className={props.className + " text-cyan-200"} />;
@@ -55,24 +55,35 @@ const getIcon = (iconType: string) => {
 };
 
 // Simplified Card Back for the Deck Strip
-export const CardBack: React.FC<{ small?: boolean, className?: string }> = ({ small, className = '' }) => (
-  <div className={`relative w-full h-full rounded-lg border border-white/10 bg-[#0a0a0a] shadow-lg overflow-hidden flex items-center justify-center group ${className}`}>
-     <div className="absolute inset-0 opacity-20" 
+export const CardBack: React.FC<{ small?: boolean, className?: string }> = ({ small, className = '' }) => {
+  return (
+    <div className={`relative w-full h-full rounded-lg border border-white/10 bg-card-dark shadow-lg overflow-hidden flex items-center justify-center group ${className}`}>
+      <div className="absolute inset-0 opacity-20"
         style={{
-          backgroundImage: `radial-gradient(circle at 50% 50%, #451a03 1px, transparent 1px)`, 
+          backgroundImage: `radial-gradient(circle at 50% 50%, #451a03 1px, transparent 1px)`,
           backgroundSize: small ? '10px 10px' : '20px 20px'
         }}
-     ></div>
-     <div className={`absolute inset-${small ? '1' : '2'} border border-amber-900/30 rounded-md`}></div>
-     
-     <div className={`relative ${small ? 'w-8 h-8' : 'w-24 h-24'} rounded-full flex items-center justify-center bg-black/50 backdrop-blur-sm border border-amber-500/20`}>
-        {!small && (
-           <div className="absolute inset-0 rounded-full border border-amber-500/30 animate-[spin-slow_10s_linear_infinite]"></div>
-        )}
-        <SparklesIcon className={`${small ? 'w-4 h-4' : 'w-10 h-10'} text-amber-600/80`} />
-     </div>
-  </div>
-);
+      ></div>
+
+      {small ? (
+        <div className="absolute inset-1 border border-amber-900/30 rounded-md"></div>
+      ) : (
+        <div className="absolute inset-2 border border-amber-900/30 rounded-md"></div>
+      )}
+
+      {small ? (
+        <div className="relative w-8 h-8 rounded-full flex items-center justify-center bg-black/50 backdrop-blur-sm border border-amber-500/20">
+          <SparklesIcon className="w-4 h-4 text-amber-600/80" />
+        </div>
+      ) : (
+        <div className="relative w-24 h-24 rounded-full flex items-center justify-center bg-black/50 backdrop-blur-sm border border-amber-500/20">
+          <div className="absolute inset-0 rounded-full border border-amber-500/30 animate-spin-slow-10s"></div>
+          <SparklesIcon className="w-10 h-10 text-amber-600/80" />
+        </div>
+      )}
+    </div>
+  );
+};
 
 export const TarotCard: React.FC<TarotCardProps> = ({ card, isRevealed, isDrawing, isReversed, index = 0 }) => {
   const [imageError, setImageError] = useState(false);
@@ -83,13 +94,20 @@ export const TarotCard: React.FC<TarotCardProps> = ({ card, isRevealed, isDrawin
     setImageLoaded(false);
   }, [card]);
 
+  const defaultGradient = 'linear-gradient(to bottom right, rgb(39, 39, 42), rgb(24, 24, 27))'; // from-zinc-800 to-zinc-900
+  const gradientStyle = {
+    backgroundImage: card 
+      ? `linear-gradient(to bottom right, ${card.gradientColors.join(', ')})` 
+      : defaultGradient
+  };
+
   // If isDrawing is true, it means the card has been dealt. We apply the entrance animation.
   return (
     <div 
-      className={`perspective-1000 w-48 h-80 sm:w-60 sm:h-96 ${isDrawing ? 'animate-deal' : 'opacity-0'}`}
+      className={`perspective-1000 tarot-card-dimensions ${isDrawing ? 'animate-deal' : 'opacity-0'}`}
     >
       <div 
-        className={`relative w-full h-full duration-[1500ms] transform-style-3d transition-transform cubic-bezier(0.175, 0.885, 0.32, 1.275) ${isRevealed ? 'rotate-y-180' : ''}`}
+        className={`relative w-full h-full duration-1500 transform-style-3d transition-transform transition-timing-card-flip ${isRevealed ? 'rotate-y-180' : ''}`}
       >
         {/* === CARD BACK === */}
         <div className="absolute inset-0 backface-hidden">
@@ -98,11 +116,11 @@ export const TarotCard: React.FC<TarotCardProps> = ({ card, isRevealed, isDrawin
 
         {/* === CARD FRONT === */}
         <div 
-            className={`absolute inset-0 backface-hidden rotate-y-180 rounded-xl overflow-hidden shadow-[0_0_40px_rgba(0,0,0,0.8)] bg-zinc-900 border border-white/10 group`}
+            className={`absolute inset-0 backface-hidden rotate-y-180 rounded-xl overflow-hidden shadow-2xl shadow-black/60 bg-zinc-900 group`}
         >
            {/* REVEAL FLASH BURST */}
            <div className={`absolute inset-0 z-50 pointer-events-none bg-white mix-blend-overlay transition-opacity duration-1000 ease-out ${isRevealed ? 'opacity-0 delay-500' : 'opacity-0'}`}></div>
-           <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300%] h-[300%] rounded-full bg-radial-gradient from-white/30 to-transparent pointer-events-none transition-all duration-1000 ${isRevealed ? 'scale-150 opacity-0' : 'scale-0 opacity-100'}`}></div>
+           <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-300-percent h-300-percent rounded-full bg-reveal-burst pointer-events-none transition-all duration-1000 ${isRevealed ? 'scale-150 opacity-0' : 'scale-0 opacity-100'}`}></div>
 
            {/* IMAGE LAYER */}
            {card?.image && !imageError && (
@@ -116,31 +134,34 @@ export const TarotCard: React.FC<TarotCardProps> = ({ card, isRevealed, isDrawin
                      onError={() => setImageError(true)}
                    />
                    {/* Vignette Overlay */}
-                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_50%,rgba(0,0,0,0.6)_100%)]"></div>
+                   <div className="absolute inset-0 bg-vignette-overlay"></div>
                </div>
            )}
 
            {/* FALLBACK ART */}
-           <div className={`absolute inset-0 bg-gradient-to-br ${card ? card.colors : 'from-zinc-800 to-zinc-900'} transition-opacity duration-500 ${imageLoaded && !imageError ? 'opacity-0' : 'opacity-100'}`}>
+           <div 
+              style={gradientStyle}
+              className={`absolute inset-0 transition-opacity duration-500 ${!imageLoaded || imageError ? 'opacity-100' : 'opacity-0'}`}
+            >
                <div className="absolute inset-3 border border-white/20 rounded-lg flex flex-col items-center justify-between p-6">
                   <div className={`text-2xl font-mystic text-white/90 drop-shadow-md ${isReversed ? 'rotate-180' : ''}`}>{card?.id}</div>
                   <div className={`transform transition-transform duration-1000 hover:scale-110 drop-shadow-2xl ${isReversed ? 'rotate-180' : ''}`}>
                      {card && getIcon(card.iconType)}
                   </div>
-                  <div className={`text-xs uppercase tracking-[0.3em] text-white/60 text-center ${isReversed ? 'rotate-180' : ''}`}>
+                  <div className={`text-xs uppercase tracking-widest text-white/60 text-center ${isReversed ? 'rotate-180' : ''}`}>
                       {card?.type === 'major' ? 'Arcana' : card?.suit}
                   </div>
                </div>
            </div>
+           
+           {/* GOLD BORDER */}
+           <div className="absolute inset-0 rounded-xl border-4 border-yellow-500/80 shadow-lg shadow-yellow-400/50 pointer-events-none"></div>
 
            {/* HOLOGRAPHIC FOIL OVERLAY */}
            <div className="absolute inset-0 opacity-30 mix-blend-soft-light pointer-events-none foil-gradient"></div>
            
            {/* GLOSSY SHINE ANIMATION */}
-           <div className={`absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent skew-x-12 translate-x-[-200%] transition-transform duration-[1500ms] delay-500 ${isRevealed ? 'translate-x-[200%]' : ''}`}></div>
-
-           {/* GOLD BORDER FRAME */}
-           <div className="absolute inset-0 border-[4px] border-amber-600/20 rounded-xl pointer-events-none mix-blend-overlay"></div>
+           <div className={`absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent skew-x-12 transition-transform duration-1500 delay-500 ${isRevealed ? 'translate-x-pos-full-200' : 'translate-x-neg-full-200'}`}></div>
         </div>
       </div>
     </div>
