@@ -1,4 +1,5 @@
 
+
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
@@ -557,56 +558,59 @@ const App: React.FC = () => {
           {step === 'drawing' && (
               <div className="w-full flex flex-col items-center justify-center gap-4 md:gap-6 px-4 mt-4 md:mt-6 flex-grow">
                   
-                  <div className="w-full flex items-center justify-center gap-2 md:gap-4 lg:gap-6 perspective-1000 z-20 flex-shrink-0">
-                      {drawnCards.map((drawn, idx) => {
-                          if (!drawn) return null;
-                          const position = idx === 0 ? 'past' : idx === 1 ? 'present' : 'future';
-                          const isActive = activeReadingView === position || activeReadingView === null;
-                          
-                          return (
-                              <div 
-                                  key={idx} 
-                                  onClick={(e) => { 
-                                      e.stopPropagation();
-                                      handleCardClick(idx);
-                                  }}
-                                  className={`flex flex-col items-center group transition-all duration-700 ${!isReadingLoading && reading ? 'cursor-pointer' : 'cursor-wait'} ${isActive ? 'opacity-100 scale-100' : 'opacity-60 scale-95'}`}
-                              >
-                                  <div className={`mb-4 text-xs font-mystic uppercase tracking-widest text-amber-400 transition-all delay-700 duration-700 ${revealedCards[idx] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                                      {getPositionLabel(drawn.positionLabel)}
-                                  </div>
-                                  <TarotCard 
-                                      card={drawn.card} 
-                                      isRevealed={revealedCards[idx]} 
-                                      isDrawing={true} 
-                                      isReversed={drawn.reversed}
-                                      index={idx}
-                                  />
-                                  {revealedCards[idx] && (
-                                      <div className={`text-center mt-6 transition-all duration-700 delay-500 opacity-0 animate-slide-in-up`} style={{animationDelay: `500ms`}}>
-                                          <h4 className="text-amber-100 font-mystic text-lg md:text-xl lg:text-2xl drop-shadow-md bg-gradient-to-r from-amber-200 to-yellow-400 bg-clip-text text-transparent">
-                                              {getCardDisplayName(drawn.card)}
-                                          </h4>
-                                          <div className="flex items-center justify-center gap-2 mt-2">
-                                              <span className="h-1px w-4 bg-amber-500/50"></span>
-                                              <p className="text-10px text-amber-500/80 uppercase tracking-wider font-semibold">
-                                                  {drawn.reversed ? t.reversed : t.upright}
-                                              </p>
-                                              <span className="h-1px w-4 bg-amber-500/50"></span>
-                                          </div>
-                                      </div>
-                                  )}
-                              </div>
-                          );
-                      })}
+                  <div className="relative w-full">
+                    <div className="w-full flex items-center justify-center gap-2 md:gap-4 lg:gap-6 perspective-1000 z-20 flex-shrink-0">
+                        {drawnCards.map((drawn, idx) => {
+                            if (!drawn) return null;
+                            const position = idx === 0 ? 'past' : idx === 1 ? 'present' : 'future';
+                            const isActive = activeReadingView === position || activeReadingView === null;
+                            
+                            return (
+                                <div 
+                                    key={idx} 
+                                    onClick={(e) => { 
+                                        e.stopPropagation();
+                                        handleCardClick(idx);
+                                    }}
+                                    className={`flex flex-col items-center group transition-all duration-700 ${!isReadingLoading && reading ? 'cursor-pointer' : 'cursor-wait'} ${isActive ? 'opacity-100 scale-100' : 'opacity-60 scale-95'}`}
+                                >
+                                    <div className={`mb-4 text-xs font-mystic uppercase tracking-widest text-amber-400 transition-all delay-700 duration-700 ${revealedCards[idx] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+                                        {getPositionLabel(drawn.positionLabel)}
+                                    </div>
+                                    <TarotCard 
+                                        card={drawn.card} 
+                                        isRevealed={revealedCards[idx]} 
+                                        isDrawing={true} 
+                                        isReversed={drawn.reversed}
+                                        index={idx}
+                                    />
+                                    {revealedCards[idx] && (
+                                        <div className={`text-center mt-6 transition-all duration-700 delay-500 opacity-0 animate-slide-in-up`} style={{animationDelay: `500ms`}}>
+                                            <h4 className="text-amber-100 font-mystic text-lg md:text-xl lg:text-2xl drop-shadow-md bg-gradient-to-r from-amber-200 to-yellow-400 bg-clip-text text-transparent">
+                                                {getCardDisplayName(drawn.card)}
+                                            </h4>
+                                            <div className="flex items-center justify-center gap-2 mt-2">
+                                                <span className="h-1px w-4 bg-amber-500/50"></span>
+                                                <p className="text-10px text-amber-500/80 uppercase tracking-wider font-semibold">
+                                                    {drawn.reversed ? t.reversed : t.upright}
+                                                </p>
+                                                <span className="h-1px w-4 bg-amber-500/50"></span>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                    {isReadingLoading && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-30 rounded-xl animate-fade-in">
+                          <div className="text-center">
+                              <p className="text-sm font-mystic text-violet-300/80 animate-pulse tracking-widest">{t.loading}</p>
+                          </div>
+                      </div>
+                    )}
                   </div>
                   
-                  {isReadingLoading && (
-                    <div className="text-center my-8 animate-fade-in">
-                      <p className="text-sm font-mystic text-violet-300/80 animate-pulse tracking-widest">{t.loading}</p>
-                    </div>
-                  )}
-
                   {revealedCards.every(Boolean) && !isReadingLoading && reading && (
                     <div className="mt-8 text-center animate-fade-in z-20">
                         <button
