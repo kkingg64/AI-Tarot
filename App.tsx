@@ -1,3 +1,4 @@
+
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
@@ -744,7 +745,7 @@ const App: React.FC = () => {
                           </div>
                       </div>
 
-                      <div className="relative z-10 overflow-y-auto p-6 md:p-8 reading-panel-content">
+                      <div className="relative z-10 overflow-y-auto p-6 md:p-8 reading-panel-content min-h-0">
                           {selectedCard ? (
                             <div className="flex flex-col md:flex-row gap-6 md:gap-8">
                                 <div className="w-full md:w-5/12 lg:w-4/12 flex-shrink-0 flex flex-col items-center space-y-4">

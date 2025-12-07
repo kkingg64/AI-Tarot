@@ -123,7 +123,7 @@ export async function getTarotReading(cards: CardReadingInput[], question: strin
   try {
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
-      contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
+      contents: userPrompt,
       config: {
         systemInstruction: systemInstruction,
         responseMimeType: "application/json",
