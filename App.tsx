@@ -468,7 +468,7 @@ const App: React.FC = () => {
       {/* HEADER */}
       <header className={`transition-all duration-1000 mt-4 md:mt-6 mb-2 text-center z-10 w-full px-12 ${step === 'drawing' ? 'scale-75 header-shift-draw' : 'scale-100'} ${(step === 'dealing') ? 'opacity-80 scale-90' : ''}`}>
           <h1 className="text-2xl md:text-5xl font-mystic text-transparent bg-clip-text bg-gradient-to-b from-amber-100 via-yellow-200 to-amber-500 text-glow-amber tracking-wide">
-              {t.title} <span className="text-xs md:text-sm text-amber-400/50 ml-1 sm:ml-2 block sm:inline">v2.2</span>
+              {t.title} <span className="text-xs md:text-sm text-amber-400/50 ml-1 sm:ml-2 block sm:inline">v2.3</span>
           </h1>
           <p className="text-amber-100/40 font-serif italic mt-2 text-xs tracking-widest uppercase">
               {t.subtitle}
@@ -482,84 +482,58 @@ const App: React.FC = () => {
           {step === 'dealing' && (
              <div className="w-full flex flex-col items-center justify-start h-full pt-4 animate-fade-in">
                  
-                <div className="deck-card-container">
-                    {shuffledDeck.slice(0, 30).map((card, i) => {
-                        const totalCards = Math.min(30, shuffledDeck.length);
-                        const angleOffset = -Math.PI / 2;
-                        const angle = angleOffset + (i / totalCards) * 2 * Math.PI;
-                        
-                        const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-                        const radius = isMobile ? 140 : 450;
-                        const ellipseFactor = isMobile ? 0.3 : 0.5;
-                        
-                        const x = radius * Math.cos(angle);
-                        const y = radius * Math.sin(angle) * ellipseFactor;
-
-                        const rotation = (angle * 180 / Math.PI) + 90;
-
-                        const isDragged = draggedCardInfo?.indexInDeck === i;
-
-                        return (
-                            <div
-                                key={card.image || card.name + i}
-                                className={`deck-card group ${isDragged ? 'opacity-0' : ''}`}
-                                style={{
-                                    transform: `translate(-50%, -50%) translate(${x}px, ${y}px) rotate(${rotation}deg)`,
-                                    zIndex: i,
-                                }}
-                                onClick={() => handleCardTap(card, i)}
-                            >
-                                <div className="card-inner-container">
-                                    <CardBack small />
-                                </div>
-                            </div>
-                        );
-                    })}
+                <div className="deck-card-container" style={{transform: 'none', padding: '0.5rem'}}>
+                    {/* Simple Grid of Cards - easy to tap */}
+                    <div className="grid grid-cols-5 gap-2 sm:gap-3 max-w-sm mx-auto">
+                    {shuffledDeck.slice(0, 25).map((card, i) => (
+                        <div
+                            key={card.image || card.name + i}
+                            onClick={() => handleCardTap(card, i)}
+                            className="w-12 h-18 sm:w-14 sm:h-20 rounded-lg border border-white/20 bg-black/40 cursor-pointer active:scale-90 transition-transform flex items-center justify-center"
+                        >
+                            <span className="text-lg sm:text-xl">🃏</span>
+                        </div>
+                    ))}
+                    </div>
                     
-                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                        <div className="flex justify-center gap-2 sm:gap-8 w-full px-2 sm:px-4 pointer-events-auto">
+                    <div className="mt-4">
+                        <div className="flex justify-center gap-2 sm:gap-4 mb-4">
                             {[0, 1, 2].map((idx) => (
                                 <div 
                                    key={idx}
-                                   ref={(el) => { slotRefs.current[idx] = el }}
                                    className={`
-                                     relative w-16 h-24 sm:w-24 sm:h-36 lg:w-28 lg:h-40 rounded-xl border-2 transition-all duration-300 flex-shrink-0
+                                     relative w-14 h-20 sm:w-20 sm:h-28 rounded-lg border-2 flex-shrink-0
                                      ${drawnCards[idx] 
-                                       ? 'border-amber-500/50 bg-black/40 shadow-lg shadow-amber-600/20' 
-                                       : 'border-dashed border-white/10 bg-white/5 hover:border-white/30'
+                                       ? 'border-amber-500/50 bg-black/60 shadow-lg' 
+                                       : 'border-dashed border-white/30 bg-white/5'
                                      }
-                                     ${draggedCardInfo !== null ? 'scale-105 border-violet-400/50' : ''}
                                    `}
                                 >
-                                   <div className="absolute -top-5 sm:-top-6 left-0 right-0 text-center">
-                                       <span className="text-8px sm:text-xs uppercase tracking-wider text-zinc-500 font-mystic">
+                                   <div className="absolute -top-5 left-0 right-0 text-center">
+                                       <span className="text-8px sm:text-10px uppercase tracking-wider text-zinc-500 font-mystic">
                                            {idx === 0 ? t.pos_past : idx === 1 ? t.pos_present : t.pos_future}
                                        </span>
                                    </div>
                                    {drawnCards[idx] ? (
-                                       <div className="w-full h-full p-0.5 sm:p-1">
-                                          <CardBack className="w-full h-full" />
-                                       </div>
+                                       <div className="w-full h-full flex items-center justify-center text-xl">🃏</div>
                                    ) : (
-                                       <div className="absolute inset-0 flex items-center justify-center opacity-30">
-                                          <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full border border-white/20"></div>
-                                       </div>
+                                       <div className="w-full h-full flex items-center justify-center text-zinc-600 text-2xl">+</div>
                                    )}
                                 </div>
                             ))}
                         </div>
                         
-                        <div className="mt-4 sm:mt-8 pointer-events-auto z-20">
+                        <div className="text-center">
                            {!allSlotsFilled ? (
-                              <p className="text-amber-200/80 font-mystic text-xs sm:text-sm uppercase tracking-widest animate-pulse bg-black/50 px-4 sm:px-6 py-2 rounded-full border border-amber-500/20 backdrop-blur-sm pointer-events-none">
-                                  {t.drag_instruction}
+                              <p className="text-amber-200/80 font-mystic text-xs sm:text-sm">
+                                👆 {language === 'zh-TW' ? '撳上方既牌放入呢度' : 'Tap cards above'}
                               </p>
                            ) : (
                               <button 
                                 onClick={(e) => {e.stopPropagation(); finishDealing();}}
-                                className="px-6 sm:px-8 py-3 sm:py-3 bg-gradient-to-r from-amber-600 to-yellow-600 rounded-full text-white font-mystic tracking-widest shadow-lg shadow-amber-500/50 hover:scale-105 transition-transform text-sm sm:text-base"
+                                className="px-6 py-3 bg-gradient-to-r from-amber-600 to-yellow-600 rounded-full text-white font-bold text-sm sm:text-base shadow-lg"
                               >
-                                 {t.draw_ready}
+                                 🔮 {t.draw_ready}
                               </button>
                            )}
                         </div>
