@@ -34,6 +34,11 @@
             -webkit-tap-highlight-color: transparent;
         }
 
+        html {
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+        }
+
         body {
             font-family: 'Noto Sans TC', sans-serif;
             background: var(--bg-dark);
@@ -163,6 +168,7 @@
             transition: all 0.3s;
             position: relative;
             overflow: hidden;
+            user-select: none;
         }
 
         .card-placeholder::before {
@@ -177,10 +183,17 @@
         .card-placeholder:hover {
             border-color: var(--primary);
             transform: translateY(-4px);
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.3);
         }
 
         .card-placeholder:active {
-            transform: scale(0.98);
+            transform: scale(0.95) translateY(0);
+            box-shadow: 0 2px 10px rgba(99, 102, 241, 0.2);
+        }
+
+        .card-placeholder.tapping {
+            transform: scale(0.92);
+            background: linear-gradient(145deg, var(--primary-dark), var(--primary));
         }
 
         .card-placeholder.revealed {
@@ -201,11 +214,12 @@
             gap: -30px;
             justify-content: center;
             flex-wrap: wrap;
+            padding: 20px 10px;
         }
 
         .spread-card {
-            width: 100px;
-            height: 150px;
+            width: 90px;
+            height: 135px;
             background: linear-gradient(145deg, var(--bg-elevated), var(--bg-card));
             border-radius: 12px;
             border: 2px solid rgba(255,255,255,0.1);
@@ -213,33 +227,72 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            font-size: 2.5rem;
+            font-size: 2rem;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
             position: relative;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
-        .spread-card:nth-child(1) { transform: translateX(20px) rotate(-5deg); }
-        .spread-card:nth-child(2) { transform: translateY(-10px); z-index: 2; }
-        .spread-card:nth-child(3) { transform: translateX(-20px) rotate(5deg); }
+        .spread-card:nth-child(1) { transform: translateX(15px) rotate(-5deg); }
+        .spread-card:nth-child(2) { transform: translateY(-8px); z-index: 2; }
+        .spread-card:nth-child(3) { transform: translateX(-15px) rotate(5deg); }
 
         .spread-card:hover {
-            transform: translateY(-15px) scale(1.05);
+            transform: translateY(-12px) scale(1.05) rotate(0deg) !important;
             z-index: 10;
             border-color: var(--secondary);
+            box-shadow: 0 15px 35px rgba(245, 158, 11, 0.25);
+        }
+
+        .spread-card:active {
+            transform: scale(0.95) !important;
+            transition: transform 0.1s;
         }
 
         .spread-card.revealed {
             background: linear-gradient(145deg, #2a2a4a, #1a1a2e);
             border-color: var(--primary);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.2);
+        }
+
+        .spread-card.revealed:hover {
+            transform: translateY(-8px) scale(1.02) rotate(0deg) !important;
         }
 
         .spread-card .card-label {
-            font-size: 0.65rem;
+            font-size: 0.6rem;
             color: var(--text-secondary);
-            margin-top: 8px;
+            margin-top: 6px;
             text-transform: uppercase;
             letter-spacing: 1px;
+            position: absolute;
+            bottom: 8px;
+        }
+
+        .spread-card .card-symbol {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 2rem;
+        }
+
+        /* Tap hint animation */
+        @keyframes pulseTap {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        .tap-hint {
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            animation: pulseTap 2s ease-in-out infinite;
+            white-space: nowrap;
         }
 
         /* Question Input */
@@ -314,9 +367,19 @@
             border: 1px solid rgba(255,255,255,0.1);
         }
 
+        .btn-secondary:active {
+            transform: scale(0.98);
+            background: var(--bg-card);
+        }
+
         .btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+        }
+
+        /* Clear/Reset button */
+        #clearBtn {
+            background: linear-gradient(135deg, var(--accent-purple), var(--primary));
         }
 
         /* Reading Result */
@@ -367,21 +430,28 @@
         /* Mode Selection */
         .mode-selector {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             margin-bottom: 20px;
             overflow-x: auto;
-            padding-bottom: 8px;
+            padding: 8px 4px;
+            padding-bottom: 12px;
             -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .mode-selector::-webkit-scrollbar {
+            display: none;
         }
 
         .mode-btn {
             flex-shrink: 0;
-            padding: 12px 20px;
-            border-radius: 25px;
+            padding: 10px 16px;
+            border-radius: 20px;
             border: 2px solid rgba(255,255,255,0.1);
             background: transparent;
             color: var(--text-secondary);
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.2s;
@@ -389,9 +459,10 @@
         }
 
         .mode-btn.active {
-            background: var(--primary);
-            border-color: var(--primary);
+            background: linear-gradient(135deg, var(--primary), var(--accent-purple));
+            border-color: transparent;
             color: white;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
         }
 
         .mode-btn:active {
@@ -500,8 +571,31 @@
             }
             
             .spread-card {
-                width: 120px;
-                height: 180px;
+                width: 110px;
+                height: 165px;
+                font-size: 2.5rem;
+            }
+
+            .spread-card .card-symbol {
+                font-size: 2.5rem;
+            }
+        }
+
+        /* Small phone adjustments */
+        @media (max-width: 360px) {
+            .hero h1 {
+                font-size: 1.6rem;
+            }
+
+            .card-placeholder {
+                width: 140px;
+                height: 210px;
+                font-size: 3rem;
+            }
+
+            .mode-btn {
+                padding: 8px 12px;
+                font-size: 0.8rem;
             }
         }
     </style>
@@ -525,11 +619,11 @@
             <p>選擇牌陣類型，專注你的問題</p>
         </section>
 
-        <div class="mode-selector">
-            <button class="mode-btn active" data-mode="single">單牌</button>
-            <button class="mode-btn" data-mode="three">三牌</button>
-            <button class="mode-btn" data-mode="celtic">凱爾特</button>
-            <button class="mode-btn" data-mode="horseshoe">馬蹄鐵</button>
+        <div class="mode-selector" role="tablist" aria-label="選擇牌陣類型">
+            <button class="mode-btn active" data-mode="single" role="tab" aria-selected="true">單牌</button>
+            <button class="mode-btn" data-mode="three" role="tab" aria-selected="false">三牌</button>
+            <button class="mode-btn" data-mode="celtic" role="tab" aria-selected="false">凱爾特</button>
+            <button class="mode-btn" data-mode="horseshoe" role="tab" aria-selected="false">馬蹄鐵</button>
         </div>
 
         <div class="card-area" id="cardArea">
@@ -551,6 +645,10 @@
 
         <button class="btn btn-primary" id="drawBtn">
             <span>🔮</span> 開始占卜
+        </button>
+
+        <button class="btn btn-secondary" id="clearBtn" style="margin-top: 12px; display: none;">
+            <span>🔄</span> 重新占卜
         </button>
 
         <div class="loading" id="loading">
@@ -623,6 +721,7 @@
         const mainCard = document.getElementById('mainCard');
         const cardArea = document.getElementById('cardArea');
         const drawBtn = document.getElementById('drawBtn');
+        const clearBtn = document.getElementById('clearBtn');
         const questionInput = document.getElementById('questionInput');
         const resultSection = document.getElementById('resultSection');
         const resultContent = document.getElementById('resultContent');
@@ -632,22 +731,94 @@
         // Mode Selection
         document.querySelectorAll('.mode-btn').forEach(btn => {
             btn.addEventListener('click', () => {
-                document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.mode-btn').forEach(b => {
+                    b.classList.remove('active');
+                    b.setAttribute('aria-selected', 'false');
+                });
                 btn.classList.add('active');
+                btn.setAttribute('aria-selected', 'true');
                 currentMode = btn.dataset.mode;
                 resetCards();
             });
         });
 
         // Card Click
-        mainCard.addEventListener('click', drawCards);
-        mainCard.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            drawCards();
-        });
+        mainCard.addEventListener('click', handleCardDraw);
+        mainCard.addEventListener('touchstart', handleCardTouchStart, { passive: true });
+        mainCard.addEventListener('touchend', handleCardTouchEnd);
 
         // Draw Button
-        drawBtn.addEventListener('click', drawCards);
+        drawBtn.addEventListener('click', handleCardDraw);
+        
+        // Loading messages
+        const loadingMessages = [
+            '正在洗牌...',
+            '塔羅牌正在思考...',
+            '宇宙能量聚集中...',
+            '解讀你的命運...'
+        ];
+        
+        function updateLoadingMessage() {
+            const loadingText = loading.querySelector('p');
+            if (loadingText) {
+                loadingText.textContent = loadingMessages[Math.floor(Math.random() * loadingMessages.length)];
+            }
+        }
+        
+        // Clear Button - reset for new reading
+        clearBtn.addEventListener('click', () => {
+            clearBtn.style.display = 'none';
+            drawBtn.style.display = 'flex';
+            questionInput.value = '';
+            resetCards();
+            resultSection.classList.remove('show');
+        });
+
+        // Touch feedback handlers
+        function handleCardTouchStart(e) {
+            if (e.target.closest('.card-placeholder')) {
+                e.target.closest('.card-placeholder').classList.add('tapping');
+            }
+        }
+
+        function handleCardTouchEnd(e) {
+            if (e.target.closest('.card-placeholder')) {
+                e.target.closest('.card-placeholder').classList.remove('tapping');
+            }
+        }
+
+        function handleCardDraw(e) {
+            if (drawBtn.disabled) return;
+            
+            drawBtn.disabled = true;
+            updateLoadingMessage();
+            loading.classList.add('show');
+            resultSection.classList.remove('show');
+            
+            // Haptic feedback
+            if (navigator.vibrate) navigator.vibrate(50);
+            
+            setTimeout(() => {
+                loading.classList.remove('show');
+                
+                // Shuffle and pick cards
+                const shuffled = [...tarotCards].sort(() => Math.random() - 0.5);
+                const numCards = currentMode === 'single' ? 1 : currentMode === 'three' ? 3 : currentMode === 'celtic' ? 5 : 7;
+                selectedCards = shuffled.slice(0, numCards);
+                
+                displayCards();
+                generateReading();
+                drawBtn.disabled = false;
+                
+                // Scroll to results on mobile
+                if (window.innerWidth < 600) {
+                    resultSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+                
+                // Haptic feedback
+                if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
+            }, 1500);
+        }
 
         // Reset Cards
         function resetCards() {
@@ -681,14 +852,20 @@
                 });
             }
             
-            // Re-attach main card listener
+            // Re-attach main card listeners
             const newMainCard = document.getElementById('mainCard');
             if (newMainCard) {
-                newMainCard.addEventListener('click', drawCards);
-                newMainCard.addEventListener('touchend', (e) => {
-                    e.preventDefault();
-                    drawCards();
-                });
+                newMainCard.addEventListener('click', handleCardDraw);
+                newMainCard.addEventListener('touchstart', handleCardTouchStart, { passive: true });
+                newMainCard.addEventListener('touchend', handleCardTouchEnd);
+            }
+            
+            // Add tap hint for single card mode
+            if (currentMode === 'single') {
+                const hint = document.createElement('div');
+                hint.className = 'tap-hint';
+                hint.textContent = '👆 點擊抽牌';
+                cardArea.appendChild(hint);
             }
         }
 
@@ -722,15 +899,19 @@
 
         // Display Cards
         function displayCards() {
+            // Remove tap hint
+            const hint = document.querySelector('.tap-hint');
+            if (hint) hint.remove();
+            
             if (currentMode === 'single') {
                 const card = selectedCards[0];
-                mainCard.innerHTML = card.symbol;
+                mainCard.innerHTML = `<span class="card-symbol">${card.symbol}</span>`;
                 mainCard.classList.add('revealed');
             } else {
                 const cards = document.querySelectorAll('.spread-card');
                 cards.forEach((cardEl, i) => {
                     cardEl.innerHTML = `
-                        ${selectedCards[i].symbol}
+                        <span class="card-symbol">${selectedCards[i].symbol}</span>
                         <span class="card-label">${cardEl.querySelector('.card-label').textContent}</span>
                     `;
                     cardEl.classList.add('revealed');
@@ -747,7 +928,7 @@
             
             const cardEl = document.querySelector(`.spread-card[data-index="${index}"]`);
             cardEl.innerHTML = `
-                ${selectedCards[index].symbol}
+                <span class="card-symbol">${selectedCards[index].symbol}</span>
                 <span class="card-label">${cardEl.querySelector('.card-label').textContent}</span>
             `;
             cardEl.classList.add('revealed');
@@ -790,6 +971,10 @@
             
             resultContent.innerHTML = readingHTML;
             resultSection.classList.add('show');
+            
+            // Show clear button, hide draw button
+            drawBtn.style.display = 'none';
+            clearBtn.style.display = 'flex';
             
             // Save reading
             const reading = {
@@ -853,25 +1038,80 @@
         document.getElementById('historyBtn').addEventListener('click', showHistory);
 
         function showHistory() {
+            // Switch to home tab first
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            document.querySelector('.nav-item[data-page="home"]').classList.add('active');
+            
             if (readings.length === 0) {
-                showToast('還沒有占卜記錄');
+                cardArea.innerHTML = `
+                    <div style="text-align: center; padding: 40px 20px;">
+                        <div style="font-size: 3rem; margin-bottom: 16px;">📜</div>
+                        <h3 style="color: var(--text-primary); margin-bottom: 8px;">暫無記錄</h3>
+                        <p style="color: var(--text-secondary);">完成占卜後會自動保存</p>
+                    </div>
+                `;
+                resultSection.classList.remove('show');
+                drawBtn.style.display = 'flex';
+                clearBtn.style.display = 'none';
                 return;
             }
             
-            let historyHTML = '<h3 style="margin-bottom: 16px;">📜 過往占卜</h3>';
+            let historyHTML = '<h3 style="margin-bottom: 16px; font-family: Cinzel, serif;">📜 過往占卜</h3>';
             readings.slice(0, 10).forEach(reading => {
-                const date = new Date(reading.date).toLocaleDateString('zh-TW');
+                const date = new Date(reading.date).toLocaleDateString('zh-TW', { 
+                    month: 'short', 
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                const modeNames = { single: '單牌', three: '三牌', celtic: '凱爾特', horseshoe: '馬蹄鐵' };
                 historyHTML += `
-                    <div class="result-card">
-                        <p><strong>${date}</strong> - ${reading.mode}牌陣</p>
-                        <p style="color: var(--text-secondary); font-size: 0.85rem;">${reading.question}</p>
-                        <p style="color: var(--secondary);">${reading.cards.join(', ')}</p>
+                    <div class="result-card" style="cursor: pointer;" onclick="showReadingDetail(${reading.id})">
+                        <p style="display: flex; justify-content: space-between; align-items: center;">
+                            <strong>${date}</strong>
+                            <span style="background: var(--primary); padding: 2px 8px; border-radius: 10px; font-size: 0.75rem;">${modeNames[reading.mode] || reading.mode}</span>
+                        </p>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 8px;">${reading.question}</p>
+                        <p style="color: var(--secondary); margin-top: 8px;">${reading.cards.join(' • ')}</p>
                     </div>
                 `;
             });
             
             resultContent.innerHTML = historyHTML;
             resultSection.classList.add('show');
+            drawBtn.style.display = 'none';
+            clearBtn.style.display = 'flex';
+            
+            // Scroll to results
+            resultSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        
+        // Show individual reading detail
+        function showReadingDetail(id) {
+            const reading = readings.find(r => r.id === id);
+            if (!reading) return;
+            
+            const modeNames = { single: '單牌', three: '三牌', celtic: '凱爾特', horseshoe: '馬蹄鐵' };
+            const positions = ['', '過去', '現在', '未來', '挑戰', '結果'];
+            
+            let detailHTML = `<button onclick="showHistory()" style="background: var(--bg-elevated); border: none; color: var(--text-secondary); padding: 8px 16px; border-radius: 8px; cursor: pointer; margin-bottom: 16px;">← 返回</button>`;
+            detailHTML += `<h3 style="margin-bottom: 16px; font-family: Cinzel, serif;">${modeNames[reading.mode]} - ${reading.question}</h3>`;
+            
+            reading.cards.forEach((cardName, i) => {
+                const card = tarotCards.find(c => c.name === cardName);
+                if (card) {
+                    detailHTML += `
+                        <div class="result-card">
+                            <div class="card-symbol">${card.symbol}</div>
+                            <h3>${positions[i] || ''} ${card.name}</h3>
+                            <p><strong>關鍵詞：</strong>${card.keywords}</p>
+                            <p style="margin-top: 12px;">${card.meaning}</p>
+                        </div>
+                    `;
+                }
+            });
+            
+            resultContent.innerHTML = detailHTML;
         }
 
         // Initialize
