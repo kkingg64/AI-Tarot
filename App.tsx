@@ -483,14 +483,14 @@ const App: React.FC = () => {
              <div className="w-full flex flex-col items-center justify-start h-full pt-4 animate-fade-in">
                  
                 <div className="deck-card-container">
-                    {shuffledDeck.slice(0, 42).map((card, i) => {
-                        const totalCards = Math.min(42, shuffledDeck.length);
+                    {shuffledDeck.slice(0, 30).map((card, i) => {
+                        const totalCards = Math.min(30, shuffledDeck.length);
                         const angleOffset = -Math.PI / 2;
                         const angle = angleOffset + (i / totalCards) * 2 * Math.PI;
                         
                         const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-                        const radius = isMobile ? 220 : 450;
-                        const ellipseFactor = 0.5;
+                        const radius = isMobile ? 140 : 450;
+                        const ellipseFactor = isMobile ? 0.3 : 0.5;
                         
                         const x = radius * Math.cos(angle);
                         const y = radius * Math.sin(angle) * ellipseFactor;
@@ -507,7 +507,6 @@ const App: React.FC = () => {
                                     transform: `translate(-50%, -50%) translate(${x}px, ${y}px) rotate(${rotation}deg)`,
                                     zIndex: i,
                                 }}
-                                onPointerDown={(e) => handleCardPointerDown(e, card, i)}
                                 onClick={() => handleCardTap(card, i)}
                             >
                                 <div className="card-inner-container">
@@ -518,13 +517,13 @@ const App: React.FC = () => {
                     })}
                     
                     <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                        <div className="flex justify-center gap-2 md:gap-8 w-full px-4 pointer-events-auto">
+                        <div className="flex justify-center gap-2 sm:gap-8 w-full px-2 sm:px-4 pointer-events-auto">
                             {[0, 1, 2].map((idx) => (
                                 <div 
                                    key={idx}
                                    ref={(el) => { slotRefs.current[idx] = el }}
                                    className={`
-                                     relative w-20 h-32 sm:w-24 sm:h-40 rounded-xl border-2 transition-all duration-300
+                                     relative w-16 h-24 sm:w-24 sm:h-36 lg:w-28 lg:h-40 rounded-xl border-2 transition-all duration-300 flex-shrink-0
                                      ${drawnCards[idx] 
                                        ? 'border-amber-500/50 bg-black/40 shadow-lg shadow-amber-600/20' 
                                        : 'border-dashed border-white/10 bg-white/5 hover:border-white/30'
@@ -532,33 +531,33 @@ const App: React.FC = () => {
                                      ${draggedCardInfo !== null ? 'scale-105 border-violet-400/50' : ''}
                                    `}
                                 >
-                                   <div className="absolute -top-6 left-0 right-0 text-center">
-                                       <span className="text-9px md:text-xs uppercase tracking-wider text-zinc-500 font-mystic">
+                                   <div className="absolute -top-5 sm:-top-6 left-0 right-0 text-center">
+                                       <span className="text-8px sm:text-xs uppercase tracking-wider text-zinc-500 font-mystic">
                                            {idx === 0 ? t.pos_past : idx === 1 ? t.pos_present : t.pos_future}
                                        </span>
                                    </div>
                                    {drawnCards[idx] ? (
-                                       <div className="w-full h-full p-1">
+                                       <div className="w-full h-full p-0.5 sm:p-1">
                                           <CardBack className="w-full h-full" />
                                        </div>
                                    ) : (
                                        <div className="absolute inset-0 flex items-center justify-center opacity-30">
-                                          <div className="w-8 h-8 rounded-full border border-white/20"></div>
+                                          <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full border border-white/20"></div>
                                        </div>
                                    )}
                                 </div>
                             ))}
                         </div>
                         
-                        <div className="mt-8 pointer-events-auto z-20">
+                        <div className="mt-4 sm:mt-8 pointer-events-auto z-20">
                            {!allSlotsFilled ? (
-                              <p className="text-amber-200/80 font-mystic text-xs md:text-sm uppercase tracking-widest animate-pulse bg-black/50 px-6 py-2 rounded-full border border-amber-500/20 backdrop-blur-sm pointer-events-none">
+                              <p className="text-amber-200/80 font-mystic text-xs sm:text-sm uppercase tracking-widest animate-pulse bg-black/50 px-4 sm:px-6 py-2 rounded-full border border-amber-500/20 backdrop-blur-sm pointer-events-none">
                                   {t.drag_instruction}
                               </p>
                            ) : (
                               <button 
                                 onClick={(e) => {e.stopPropagation(); finishDealing();}}
-                                className="px-8 py-3 bg-gradient-to-r from-amber-600 to-yellow-600 rounded-full text-white font-mystic tracking-widest shadow-lg shadow-amber-500/50 hover:scale-105 transition-transform"
+                                className="px-6 sm:px-8 py-3 sm:py-3 bg-gradient-to-r from-amber-600 to-yellow-600 rounded-full text-white font-mystic tracking-widest shadow-lg shadow-amber-500/50 hover:scale-105 transition-transform text-sm sm:text-base"
                               >
                                  {t.draw_ready}
                               </button>
@@ -686,7 +685,22 @@ const App: React.FC = () => {
                       </div>
                   </div>
 
-                  <div className="relative w-full md:w-64 md:h-64 flex items-center justify-center">
+                  {/* Mobile: Simple Tap to Draw Button */}
+                  <div className="md:hidden mt-6 px-4">
+                    <button
+                      onClick={() => {
+                        if (!question) {
+                          setQuestion(t.questions[Math.floor(Math.random() * t.questions.length)]);
+                        }
+                        startChanneling();
+                      }}
+                      className="w-full py-4 bg-gradient-to-r from-violet-600 to-indigo-600 rounded-xl text-white font-mystic text-lg shadow-lg shadow-violet-500/30"
+                    >
+                      ✨ 開始解讀
+                    </button>
+                  </div>
+
+                  <div className="relative w-full md:w-64 md:h-64 flex items-center justify-center hidden md:flex">
                        <div className="absolute w-56 h-56 rounded-full border border-violet-500/10 animate-spin-slow-10s"></div>
                        <div className="absolute w-48 h-48 rounded-full border border-amber-500/10 animate-spin-slow-15s-reverse"></div>
 
