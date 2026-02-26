@@ -468,7 +468,7 @@ const App: React.FC = () => {
       {/* HEADER */}
       <header className={`transition-all duration-1000 mt-4 md:mt-6 mb-2 text-center z-10 w-full px-12 ${step === 'drawing' ? 'scale-75 header-shift-draw' : 'scale-100'} ${(step === 'dealing') ? 'opacity-80 scale-90' : ''}`}>
           <h1 className="text-2xl md:text-5xl font-mystic text-transparent bg-clip-text bg-gradient-to-b from-amber-100 via-yellow-200 to-amber-500 text-glow-amber tracking-wide">
-              {t.title} <span className="text-xs md:text-sm text-amber-400/50 ml-1 sm:ml-2 block sm:inline">v2.4</span>
+              {t.title} <span className="text-xs md:text-sm text-amber-400/50 ml-1 sm:ml-2 block sm:inline">v2.5</span>
           </h1>
           <p className="text-amber-100/40 font-serif italic mt-2 text-xs tracking-widest uppercase">
               {t.subtitle}
@@ -483,13 +483,13 @@ const App: React.FC = () => {
              <div className="w-full flex flex-col items-center justify-start h-full pt-4 animate-fade-in">
                  
                 <div className="deck-card-container" style={{transform: 'none', padding: '0.5rem'}}>
-                    {/* Simple Grid of Cards - BIG for mobile */}
-                    <div className="grid grid-cols-4 gap-3 sm:gap-4 max-w-sm mx-auto px-2">
-                    {shuffledDeck.slice(0, 20).map((card, i) => (
+                    {/* Simple Grid of Cards - VERY BIG for mobile */}
+                    <div className="grid grid-cols-3 gap-2 sm:gap-3 max-w-md mx-auto px-2 mb-4">
+                    {shuffledDeck.slice(0, 15).map((card, i) => (
                         <div
                             key={card.image || card.name + i}
                             onClick={() => handleCardTap(card, i)}
-                            className="aspect-[2/3] rounded-xl border-2 border-white/20 bg-black/60 cursor-pointer active:scale-90 transition-all flex items-center justify-center text-3xl sm:text-4xl"
+                            className="aspect-[2/3] rounded-xl border-2 border-white/30 bg-black/80 cursor-pointer active:scale-95 transition-all flex items-center justify-center text-4xl sm:text-5xl shadow-lg"
                         >
                             🃏
                         </div>
@@ -497,27 +497,27 @@ const App: React.FC = () => {
                     </div>
                     
                     <div className="mt-4">
-                        <div className="flex justify-center gap-3 sm:gap-4 mb-4 px-2">
+                        <div className="flex justify-center gap-2 sm:gap-3 mb-4 px-2">
                             {[0, 1, 2].map((idx) => (
                                 <div 
                                    key={idx}
                                    className={`
-                                     relative flex-1 max-w-[28vw] sm:max-w-24 aspect-[2/3] rounded-xl border-2 flex-shrink-0
+                                     relative flex-1 max-w-[30vw] sm:max-w-28 aspect-[2/3] rounded-xl border-2 flex-shrink-0
                                      ${drawnCards[idx] 
-                                       ? 'border-amber-500/60 bg-black/80 shadow-lg shadow-amber-500/30' 
-                                       : 'border-dashed border-white/40 bg-white/10'
+                                       ? 'border-amber-500 bg-amber-500/20 shadow-lg shadow-amber-500/40' 
+                                       : 'border-dashed border-white/50 bg-white/10'
                                      }
                                    `}
                                 >
                                    <div className="absolute -top-6 sm:-top-7 left-0 right-0 text-center">
-                                       <span className="text-10px sm:text-xs uppercase tracking-wider text-zinc-400 font-bold">
+                                       <span className="text-xs sm:text-sm uppercase tracking-wider text-zinc-300 font-bold">
                                            {idx === 0 ? t.pos_past : idx === 1 ? t.pos_present : t.pos_future}
                                        </span>
                                    </div>
                                    {drawnCards[idx] ? (
-                                       <div className="w-full h-full flex items-center justify-center text-3xl sm:text-4xl">🃏</div>
+                                       <div className="w-full h-full flex items-center justify-center text-4xl sm:text-5xl">🃏</div>
                                    ) : (
-                                       <div className="w-full h-full flex items-center justify-center text-3xl text-zinc-500">👆</div>
+                                       <div className="w-full h-full flex items-center justify-center text-4xl text-zinc-400">👆</div>
                                    )}
                                 </div>
                             ))}
