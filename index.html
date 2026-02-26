@@ -146,12 +146,13 @@
 
         /* Card Display Area */
         .card-area {
-            min-height: 280px;
+            min-height: 260px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            margin: 24px 0;
+            margin: 20px 0;
+            padding: 10px;
         }
 
         .card-placeholder {
@@ -169,6 +170,7 @@
             position: relative;
             overflow: hidden;
             user-select: none;
+            touch-action: manipulation;
         }
 
         .card-placeholder::before {
@@ -331,6 +333,10 @@
 
         .question-input::placeholder {
             color: var(--text-secondary);
+        }
+
+        .question-input:focus + .char-count {
+            color: var(--primary);
         }
 
         /* Buttons */
@@ -633,7 +639,7 @@
         </div>
 
         <section class="question-section">
-            <label for="questionInput">專注於你的問題（可選）</label>
+            <label for="questionInput">專注於你的問題（可選）<span id="charCount" style="color: var(--text-secondary); font-weight: normal;">0/200</span></label>
             <textarea 
                 class="question-input" 
                 id="questionInput" 
@@ -723,10 +729,18 @@
         const drawBtn = document.getElementById('drawBtn');
         const clearBtn = document.getElementById('clearBtn');
         const questionInput = document.getElementById('questionInput');
+        const charCount = document.getElementById('charCount');
         const resultSection = document.getElementById('resultSection');
         const resultContent = document.getElementById('resultContent');
         const loading = document.getElementById('loading');
         const toast = document.getElementById('toast');
+
+        // Character counter for question input
+        questionInput.addEventListener('input', () => {
+            const length = questionInput.value.length;
+            charCount.textContent = `${length}/200`;
+            charCount.style.color = length > 180 ? 'var(--error)' : 'var(--text-secondary)';
+        });
 
         // Mode Selection
         document.querySelectorAll('.mode-btn').forEach(btn => {
@@ -791,6 +805,7 @@
             if (drawBtn.disabled) return;
             
             drawBtn.disabled = true;
+            drawBtn.innerHTML = '<span class="spinner" style="width:20px;height:20px;border-width:2px;"></span> 抽牌中...';
             updateLoadingMessage();
             loading.classList.add('show');
             resultSection.classList.remove('show');
@@ -809,6 +824,7 @@
                 displayCards();
                 generateReading();
                 drawBtn.disabled = false;
+                drawBtn.innerHTML = '<span>🔮</span> 開始占卜';
                 
                 // Scroll to results on mobile
                 if (window.innerWidth < 600) {
@@ -1117,12 +1133,34 @@
         // Initialize
         resetCards();
 
-        // Service Worker Registration
+        // Service Worker Registration with update detection
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js')
-                .then(reg => console.log('SW registered'))
+                .then(reg => {
+                    console.log('SW registered:', reg.scope);
+                    // Check for updates
+                    reg.addEventListener('updatefound', () => {
+                        const newWorker = reg.installing;
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                showToast('🔄 新版本已就緒，請刷新頁面');
+                            }
+                        });
+                    });
+                })
                 .catch(err => console.log('SW error:', err));
         }
+        
+        // Check for app update on visibility change
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && 'serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistration().then(reg => {
+                    if (reg && reg.waiting) {
+                        showToast('🔄 請刷新以獲�最新版本');
+                    }
+                });
+            }
+        });
     </script>
 </body>
 </html>
