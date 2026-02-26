@@ -1,5 +1,5 @@
 // AI Tarot Service Worker
-const CACHE_NAME = 'ai-tarot-v2';
+const CACHE_NAME = 'ai-tarot-v3';
 const urlsToCache = [
   './',
   './index.html',
