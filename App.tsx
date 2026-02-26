@@ -468,7 +468,7 @@ const App: React.FC = () => {
       {/* HEADER */}
       <header className={`transition-all duration-1000 mt-4 md:mt-6 mb-2 text-center z-10 w-full px-12 ${step === 'drawing' ? 'scale-75 header-shift-draw' : 'scale-100'} ${(step === 'dealing') ? 'opacity-80 scale-90' : ''}`}>
           <h1 className="text-2xl md:text-5xl font-mystic text-transparent bg-clip-text bg-gradient-to-b from-amber-100 via-yellow-200 to-amber-500 text-glow-amber tracking-wide">
-              {t.title} <span className="text-xs md:text-sm text-amber-400/50 ml-1 sm:ml-2 block sm:inline">v2.3</span>
+              {t.title} <span className="text-xs md:text-sm text-amber-400/50 ml-1 sm:ml-2 block sm:inline">v2.4</span>
           </h1>
           <p className="text-amber-100/40 font-serif italic mt-2 text-xs tracking-widest uppercase">
               {t.subtitle}
@@ -483,41 +483,41 @@ const App: React.FC = () => {
              <div className="w-full flex flex-col items-center justify-start h-full pt-4 animate-fade-in">
                  
                 <div className="deck-card-container" style={{transform: 'none', padding: '0.5rem'}}>
-                    {/* Simple Grid of Cards - easy to tap */}
-                    <div className="grid grid-cols-5 gap-2 sm:gap-3 max-w-sm mx-auto">
-                    {shuffledDeck.slice(0, 25).map((card, i) => (
+                    {/* Simple Grid of Cards - BIG for mobile */}
+                    <div className="grid grid-cols-4 gap-3 sm:gap-4 max-w-sm mx-auto px-2">
+                    {shuffledDeck.slice(0, 20).map((card, i) => (
                         <div
                             key={card.image || card.name + i}
                             onClick={() => handleCardTap(card, i)}
-                            className="w-12 h-18 sm:w-14 sm:h-20 rounded-lg border border-white/20 bg-black/40 cursor-pointer active:scale-90 transition-transform flex items-center justify-center"
+                            className="aspect-[2/3] rounded-xl border-2 border-white/20 bg-black/60 cursor-pointer active:scale-90 transition-all flex items-center justify-center text-3xl sm:text-4xl"
                         >
-                            <span className="text-lg sm:text-xl">🃏</span>
+                            🃏
                         </div>
                     ))}
                     </div>
                     
                     <div className="mt-4">
-                        <div className="flex justify-center gap-2 sm:gap-4 mb-4">
+                        <div className="flex justify-center gap-3 sm:gap-4 mb-4 px-2">
                             {[0, 1, 2].map((idx) => (
                                 <div 
                                    key={idx}
                                    className={`
-                                     relative w-14 h-20 sm:w-20 sm:h-28 rounded-lg border-2 flex-shrink-0
+                                     relative flex-1 max-w-[28vw] sm:max-w-24 aspect-[2/3] rounded-xl border-2 flex-shrink-0
                                      ${drawnCards[idx] 
-                                       ? 'border-amber-500/50 bg-black/60 shadow-lg' 
-                                       : 'border-dashed border-white/30 bg-white/5'
+                                       ? 'border-amber-500/60 bg-black/80 shadow-lg shadow-amber-500/30' 
+                                       : 'border-dashed border-white/40 bg-white/10'
                                      }
                                    `}
                                 >
-                                   <div className="absolute -top-5 left-0 right-0 text-center">
-                                       <span className="text-8px sm:text-10px uppercase tracking-wider text-zinc-500 font-mystic">
+                                   <div className="absolute -top-6 sm:-top-7 left-0 right-0 text-center">
+                                       <span className="text-10px sm:text-xs uppercase tracking-wider text-zinc-400 font-bold">
                                            {idx === 0 ? t.pos_past : idx === 1 ? t.pos_present : t.pos_future}
                                        </span>
                                    </div>
                                    {drawnCards[idx] ? (
-                                       <div className="w-full h-full flex items-center justify-center text-xl">🃏</div>
+                                       <div className="w-full h-full flex items-center justify-center text-3xl sm:text-4xl">🃏</div>
                                    ) : (
-                                       <div className="w-full h-full flex items-center justify-center text-zinc-600 text-2xl">+</div>
+                                       <div className="w-full h-full flex items-center justify-center text-3xl text-zinc-500">👆</div>
                                    )}
                                 </div>
                             ))}
