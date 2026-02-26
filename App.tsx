@@ -213,6 +213,9 @@ const App: React.FC = () => {
   const [activeReadingView, setActiveReadingView] = useState<ActiveReadingView | null>(null);
   const [question, setQuestion] = useState('');
   
+  // Mobile: step-by-step flow
+  const [mobileStep, setMobileStep] = useState(0); // 0=question, 1=channeling, 2=draw, 3=result
+  
   const [shuffledDeck, setShuffledDeck] = useState<CardData[]>([]);
   const [drawnCards, setDrawnCards] = useState<(DrawnCard | null)[]>([null, null, null]);
   
@@ -684,6 +687,20 @@ const App: React.FC = () => {
                              </button>
                           ))}
                       </div>
+
+                      {/* Quick Start Button for Mobile */}
+                      <button
+                        onClick={() => {
+                          // Quick start - auto fill question
+                          if (!question) {
+                            setQuestion(t.questions[Math.floor(Math.random() * t.questions.length)]);
+                          }
+                          startChanneling();
+                        }}
+                        className="mt-6 px-8 py-4 bg-gradient-to-r from-violet-600 to-indigo-600 rounded-full text-white font-mystic tracking-widest shadow-lg shadow-violet-500/30 hover:scale-105 transition-transform btn-mobile"
+                      >
+                        {t.draw_ready}
+                      </button>
                   </div>
 
                   <div className="relative w-64 h-64 flex items-center justify-center">
