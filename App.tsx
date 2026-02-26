@@ -273,15 +273,19 @@ const App: React.FC = () => {
 
   // --- SIMPLE MOBILE DRAWING (tap cards) ---
   // Instead of complex deck, just show tap targets
-  const handleSimpleCardTap = (cardIndex: number) => {
+  const handleCardTap = (card: CardData, cardIndex: number) => {
     if (step !== 'dealing') return;
     
     // Find first empty slot
     const emptySlotIndex = drawnCards.findIndex(c => c === null);
     if (emptySlotIndex === -1) return;
     
-    const card = shuffledDeck[cardIndex];
     if (!card) return;
+    
+    // Haptic feedback
+    if (navigator.vibrate) {
+      navigator.vibrate(30);
+    }
     
     const newDrawn = [...drawnCards];
     newDrawn[emptySlotIndex] = {
@@ -480,47 +484,48 @@ const App: React.FC = () => {
 
           {/* DEALING PHASE UI */}
           {step === 'dealing' && (
-             <div className="w-full flex flex-col items-center justify-start h-full pt-4 animate-fade-in">
+             <div className="w-full flex flex-col items-center justify-start h-full pt-2 sm:pt-4 animate-fade-in">
                  
-                <div className="deck-card-container" style={{transform: 'none', padding: '0.5rem'}}>
-                    {/* Simple Grid of Cards - VERY BIG for mobile */}
-                <p className="text-white text-center text-sm mb-3 px-4">
-                  👇 {language === 'zh-TW' ? '撳牌放入下面既位置' : 'Tap cards below'}
+                <div className="deck-card-container w-full max-w-lg mx-auto" style={{transform: 'none'}}>
+                    {/* Simple Grid of Cards - BIG for mobile */}
+                    <p className="text-white text-center text-xs sm:text-sm mb-2 px-4">
+                  📱 {language === 'zh-TW' ? '撳牌放入下面既位置' : 'Tap cards below to place'}
                 </p>
-                    <div className="grid grid-cols-3 gap-2 sm:gap-3 max-w-md mx-auto px-2 mb-4">
+                    <div className="grid grid-cols-5 gap-1 sm:gap-3 max-w-md mx-auto px-1 mb-3">
                     {shuffledDeck.slice(0, 15).map((card, i) => (
-                        <div
+                        <button
                             key={card.image || card.name + i}
                             onClick={() => handleCardTap(card, i)}
-                            className="aspect-[2/3] rounded-xl border-2 border-white/30 bg-black/80 cursor-pointer active:scale-95 transition-all flex items-center justify-center text-4xl sm:text-5xl shadow-lg"
+                            disabled={allSlotsFilled}
+                            className="aspect-[2/3] rounded-lg border-2 border-amber-500/40 bg-gradient-to-b from-amber-900/60 to-purple-900/60 cursor-pointer active:scale-90 transition-all flex items-center justify-center text-2xl sm:text-4xl shadow-md disabled:opacity-30 disabled:cursor-not-allowed"
                         >
                             🃏
-                        </div>
+                        </button>
                     ))}
                     </div>
                     
-                    <div className="mt-4">
-                        <div className="flex justify-center gap-2 sm:gap-3 mb-4 px-2">
+                    <div className="mt-2 sm:mt-4">
+                        <div className="flex justify-center gap-1 sm:gap-3 mb-3 px-1">
                             {[0, 1, 2].map((idx) => (
                                 <div 
                                    key={idx}
                                    className={`
-                                     relative flex-1 max-w-[30vw] sm:max-w-28 aspect-[2/3] rounded-xl border-2 flex-shrink-0
+                                     relative flex-1 max-w-[28vw] sm:max-w-28 aspect-[2/3] rounded-xl border-2 flex-shrink-0 transition-all
                                      ${drawnCards[idx] 
-                                       ? 'border-amber-500 bg-amber-500/20 shadow-lg shadow-amber-500/40' 
-                                       : 'border-dashed border-white/50 bg-white/10'
+                                       ? 'border-amber-400 bg-amber-500/30 shadow-lg shadow-amber-500/50 scale-105' 
+                                       : 'border-dashed border-white/40 bg-white/5'
                                      }
                                    `}
                                 >
-                                   <div className="absolute -top-6 sm:-top-7 left-0 right-0 text-center">
-                                       <span className="text-xs sm:text-sm uppercase tracking-wider text-zinc-300 font-bold">
+                                   <div className="absolute -top-5 sm:-top-7 left-0 right-0 text-center">
+                                       <span className="text-[10px] sm:text-sm uppercase tracking-wider text-zinc-300 font-bold">
                                            {idx === 0 ? t.pos_past : idx === 1 ? t.pos_present : t.pos_future}
                                        </span>
                                    </div>
                                    {drawnCards[idx] ? (
-                                       <div className="w-full h-full flex items-center justify-center text-4xl sm:text-5xl">🃏</div>
+                                       <div className="w-full h-full flex items-center justify-center text-3xl sm:text-5xl animate-bounce-short">🃏</div>
                                    ) : (
-                                       <div className="w-full h-full flex items-center justify-center text-4xl text-zinc-400">👆</div>
+                                       <div className="w-full h-full flex items-center justify-center text-2xl sm:text-4xl text-zinc-500">👆</div>
                                    )}
                                 </div>
                             ))}
@@ -528,13 +533,13 @@ const App: React.FC = () => {
                         
                         <div className="text-center">
                            {!allSlotsFilled ? (
-                              <p className="text-amber-200/80 font-mystic text-xs sm:text-sm">
-                                👆 {language === 'zh-TW' ? '撳上方既牌放入呢度' : 'Tap cards above'}
+                              <p className="text-amber-200/70 font-mystic text-xs sm:text-sm">
+                                👆 {language === 'zh-TW' ? '撳牌放入呢度' : 'Tap cards above'}
                               </p>
                            ) : (
                               <button 
                                 onClick={(e) => {e.stopPropagation(); finishDealing();}}
-                                className="px-6 py-3 bg-gradient-to-r from-amber-600 to-yellow-600 rounded-full text-white font-bold text-sm sm:text-base shadow-lg"
+                                className="px-8 py-4 bg-gradient-to-r from-amber-600 to-yellow-600 rounded-full text-white font-bold text-base sm:text-lg shadow-lg active:scale-95 transition-transform"
                               >
                                  🔮 {t.draw_ready}
                               </button>
