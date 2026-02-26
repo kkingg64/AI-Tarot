@@ -88,130 +88,70 @@
   animation: shine 1.5s infinite;
 }
 
-/* Mobile-First Responsive Design */
-:root {
-  --card-width-mobile: 20vw;
-  --card-height-mobile: 32vw;
-  --card-width-desktop: 7rem;
-  --card-height-desktop: 11rem;
-  --touch-target: 44px;
-}
-
-* {
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* Prevent double-tap zoom */
-button, a, .deck-card {
-  touch-action: manipulation;
-}
-
-/* Mobile Card Sizes */
+/* Responsive Card Sizes - Mobile First */
 .deck-card {
-  width: var(--card-width-mobile) !important;
-  height: var(--card-height-mobile) !important;
-  max-width: 85px !important;
-  max-height: 135px !important;
+  width: 22vw !important;
+  height: 35vw !important;
+  max-width: 90px !important;
+  max-height: 145px !important;
 }
 
 .deck-card-container {
-  transform: scale(0.5);
+  transform: scale(0.6);
   transform-origin: top center;
-  padding-bottom: 20vh;
-}
-
-/* Slot Cards */
-.slot-card {
-  width: 22vw !important;
-  height: 35vw !important;
-  max-width: 95px !important;
-  max-height: 150px !important;
-}
-
-/* Large Touch Buttons */
-button, .btn-mobile {
-  min-height: var(--touch-target);
-  min-width: var(--touch-target);
-  padding: 12px 24px;
-}
-
-/* Mobile Typography */
-.text-base-mobile {
-  font-size: 1rem;
-}
-
-.text-lg-mobile {
-  font-size: 1.125rem;
-}
-
-.text-xl-mobile {
-  font-size: 1.25rem;
-}
-
-/* Full Screen Mobile Experience */
-@media (max-width: 768px) {
-  .hero, .deck-section {
-    min-height: 100vh;
-    min-height: 100dvh;
-  }
-  
-  /* Stack vertically on mobile */
-  .flex-row-mobile {
-    flex-direction: column;
-  }
-  
-  /* Full width buttons */
-  .btn-full-mobile {
-    width: 100%;
-    margin: 8px 0;
-  }
-  
-  /* Hide on mobile */
-  .hide-mobile {
-    display: none !important;
-  }
-  
-  /* Show on mobile */
-  .show-mobile {
-    display: block !important;
-  }
-  
-  /* Bottom safe area */
-  .pb-safe {
-    padding-bottom: env(safe-area-inset-bottom);
-  }
 }
 
 @media (min-width: 768px) {
   .deck-card {
-    width: var(--card-width-desktop) !important;
-    height: var(--card-height-desktop) !important;
+    width: 7rem !important;
+    height: 11rem !important;
   }
-  
   .deck-card-container {
     transform: scale(1);
   }
-  
-  .hide-desktop {
-    display: none !important;
+}
+
+/* Touch-friendly slot sizes */
+.slot-card {
+  width: 24vw !important;
+  height: 38vw !important;
+  max-width: 100px !important;
+  max-height: 160px !important;
+}
+
+@media (min-width: 768px) {
+  .slot-card {
+    width: 8rem !important;
+    height: 12rem !important;
   }
 }
 
-/* Smooth Animations */
-.deck-card, button, .tarot-card {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+/* Responsive text sizes */
+.text-xs-mobile {
+  font-size: 0.65rem;
+  line-height: 1rem;
 }
 
-/* Card Dealing Animation */
-@keyframes deal {
-  0% { 
-    transform: translateY(200px) scale(0.2); 
-    opacity: 0;
+@media (min-width: 768px) {
+  .text-xs-mobile {
+    font-size: 0.75rem;
+    line-height: 1rem;
   }
-  100% { 
-    transform: translateY(0) scale(1); 
-    opacity: 1;
+}
+
+/* Larger touch targets */
+button, 
+.deck-card, 
+.slot-card {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+/* Prevent zoom on double tap */
+* {
+  touch-action: manipulation;
+}
 }
 
 .animate-deal {
@@ -437,4 +377,44 @@ button, .btn-mobile {
 
 .animate-pulse-glow {
   animation: pulse-glow 2.5s infinite cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+/* ========================================
+   MOBILE FIXES - Simple & Safe
+   ======================================== */
+
+/* Prevent zoom on double tap */
+* {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Larger buttons on mobile */
+@media (max-width: 640px) {
+  /* Make all buttons bigger for touch */
+  button {
+    min-height: 48px !important;
+    padding: 12px 20px !important;
+  }
+  
+  /* Reduce card sizes slightly */
+  .deck-card {
+    width: 18vw !important;
+    max-width: 70px !important;
+    height: 28vw !important;
+    max-height: 110px !important;
+  }
+  
+  /* Smaller slot cards */
+  .slot-card {
+    width: 28vw !important;
+    max-width: 100px !important;
+    height: 44vw !important;
+    max-height: 160px !important;
+  }
+  
+  /* Adjust deck container */
+  .deck-card-container {
+    transform: scale(0.6) !important;
+  }
 }
