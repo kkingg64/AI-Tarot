@@ -7,17 +7,17 @@
 ## Phase 1: Mobile UI 優化 (緊急)
 
 ### 1.1 流動體驗
-- [ ] 重新設計Mobile Layout - 全熒幕體驗
-- [ ] 加大所有Touch Targets (最少44px)
+- [x] 重新設計Mobile Layout - 全熒幕體驗
+- [x] 加大所有Touch Targets (最少44px)
 - [ ] Bottom Navigation Bar
 - [ ] 一步一步引導流程 (Intro → Question → Channeling → Draw → Result)
 - [ ] Smooth Page Transitions
 - [ ] Loading States優化
 
 ### 1.2 Card Interaction
-- [ ] Tap to Draw - 取代Drag & Drop
+- [x] Tap to Draw - 取代Drag & Drop
 - [ ] Card Flip動畫優化
-- [ ] Haptic Feedback (震動)
+- [x] Haptic Feedback (震動)
 - [ ] Swipe手勢
 
 ---
