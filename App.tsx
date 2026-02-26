@@ -271,29 +271,29 @@ const App: React.FC = () => {
     }
   };
 
-  // --- GESTURE LOGIC (Mobile-Friendly: Tap to Select) ---
-  // For mobile, we use tap-to-select instead of drag
-  const handleCardTap = (card: CardData, indexInDeck: number) => {
+  // --- SIMPLE MOBILE DRAWING (tap cards) ---
+  // Instead of complex deck, just show tap targets
+  const handleSimpleCardTap = (cardIndex: number) => {
     if (step !== 'dealing') return;
     
     // Find first empty slot
     const emptySlotIndex = drawnCards.findIndex(c => c === null);
-    if (emptySlotIndex === -1) return; // All slots filled
+    if (emptySlotIndex === -1) return;
+    
+    const card = shuffledDeck[cardIndex];
+    if (!card) return;
     
     const newDrawn = [...drawnCards];
-    const reversed = Math.random() < 0.2;
-    
     newDrawn[emptySlotIndex] = {
       card,
-      reversed,
+      reversed: Math.random() < 0.2,
       positionLabel: emptySlotIndex === 0 ? 'Past' : emptySlotIndex === 1 ? 'Present' : 'Future'
     };
     
     setDrawnCards(newDrawn);
-    setShuffledDeck(prevDeck => prevDeck.filter(c => c.image !== card.image));
   };
 
-  // Legacy drag handlers (kept for desktop)
+  // Legacy drag handlers (for desktop)
   const handleCardPointerDown = (e: React.PointerEvent, card: CardData, indexInDeck: number) => {
     if (!e.isPrimary || allSlotsFilled || draggedCardInfo) return;
     e.preventDefault();
