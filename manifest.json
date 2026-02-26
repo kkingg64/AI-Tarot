@@ -1,0 +1,27 @@
+{
+  "name": "AI Tarot - 智能塔羅牌",
+  "short_name": "AI Tarot",
+  "description": "AI-powered Tarot Card Reading - Get instant insights and guidance",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f0f1a",
+  "theme_color": "#1a1a2e",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect fill='%236366f1' width='192' height='192' rx='32'/%3E%3Ctext x='96' y='140' font-size='100' text-anchor='middle'%3E🔮%3C/text%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect fill='%236366f1' width='512' height='512' rx='64'/%3E%3Ctext x='256' y='380' font-size='280' text-anchor='middle'%3E🔮%3C/text%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["lifestyle", "entertainment"],
+  "lang": "zh-TW",
+  "dir": "ltr"
+}
