@@ -468,7 +468,7 @@ const App: React.FC = () => {
       {/* HEADER */}
       <header className={`transition-all duration-1000 mt-4 md:mt-6 mb-2 text-center z-10 w-full px-12 ${step === 'drawing' ? 'scale-75 header-shift-draw' : 'scale-100'} ${(step === 'dealing') ? 'opacity-80 scale-90' : ''}`}>
           <h1 className="text-2xl md:text-5xl font-mystic text-transparent bg-clip-text bg-gradient-to-b from-amber-100 via-yellow-200 to-amber-500 text-glow-amber tracking-wide">
-              {t.title} <span className="text-xs md:text-sm text-amber-400/50 ml-1 sm:ml-2 block sm:inline">v2.5</span>
+              {t.title} <span className="text-xs md:text-sm text-amber-400/50 ml-1 sm:ml-2 block sm:inline">v2.6</span>
           </h1>
           <p className="text-amber-100/40 font-serif italic mt-2 text-xs tracking-widest uppercase">
               {t.subtitle}
@@ -484,6 +484,9 @@ const App: React.FC = () => {
                  
                 <div className="deck-card-container" style={{transform: 'none', padding: '0.5rem'}}>
                     {/* Simple Grid of Cards - VERY BIG for mobile */}
+                <p className="text-white text-center text-sm mb-3 px-4">
+                  👇 {language === 'zh-TW' ? '撳牌放入下面既位置' : 'Tap cards below'}
+                </p>
                     <div className="grid grid-cols-3 gap-2 sm:gap-3 max-w-md mx-auto px-2 mb-4">
                     {shuffledDeck.slice(0, 15).map((card, i) => (
                         <div
