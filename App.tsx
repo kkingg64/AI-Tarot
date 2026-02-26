@@ -524,7 +524,7 @@ const App: React.FC = () => {
                                    key={idx}
                                    ref={(el) => { slotRefs.current[idx] = el }}
                                    className={`
-                                     relative w-24 h-40 rounded-xl border-2 transition-all duration-300
+                                     relative w-20 h-32 sm:w-24 sm:h-40 rounded-xl border-2 transition-all duration-300
                                      ${drawnCards[idx] 
                                        ? 'border-amber-500/50 bg-black/40 shadow-lg shadow-amber-600/20' 
                                        : 'border-dashed border-white/10 bg-white/5 hover:border-white/30'
@@ -572,7 +572,7 @@ const App: React.FC = () => {
           {/* GHOST CARD (When Dragging) */}
           {draggedCardInfo && dragPosition && (
              <div 
-               className="fixed w-24 h-40 md:w-28 md:h-44 z-100 pointer-events-none opacity-90 shadow-2xl shadow-amber-500/50 rotate-3"
+               className="fixed w-20 h-32 sm:w-24 sm:h-40 z-100 pointer-events-none opacity-90 shadow-2xl shadow-amber-500/50 rotate-3"
                style={{ 
                    left: dragPosition.x, 
                    top: dragPosition.y,
@@ -686,7 +686,7 @@ const App: React.FC = () => {
                       </div>
                   </div>
 
-                  <div className="relative w-64 h-64 flex items-center justify-center">
+                  <div className="relative w-full md:w-64 md:h-64 flex items-center justify-center">
                        <div className="absolute w-56 h-56 rounded-full border border-violet-500/10 animate-spin-slow-10s"></div>
                        <div className="absolute w-48 h-48 rounded-full border border-amber-500/10 animate-spin-slow-15s-reverse"></div>
 
