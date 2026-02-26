@@ -683,6 +683,21 @@ const App: React.FC = () => {
                              </button>
                           ))}
                       </div>
+
+                      {/* SIMPLE ONE-TAP DRAW BUTTON */}
+                      <button
+                        onClick={() => {
+                          // Use random question if none provided
+                          if (!question) {
+                            const randomQ = t.questions[Math.floor(Math.random() * t.questions.length)];
+                            setQuestion(randomQ);
+                          }
+                          startChanneling();
+                        }}
+                        className="w-full max-w-xs mx-auto py-5 px-8 bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 rounded-2xl text-white text-xl font-bold shadow-2xl shadow-purple-500/40 hover:shadow-purple-500/60 hover:scale-[1.02] active:scale-95 transition-all"
+                      >
+                        ✨ {language === 'zh-TW' ? '一鍵開始' : 'One-Tap Start'}
+                      </button>
                   </div>
 
                   {/* Mobile: Simple Tap to Draw Button */}
