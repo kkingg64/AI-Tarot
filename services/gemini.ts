@@ -1,4 +1,3 @@
-
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
@@ -35,6 +34,24 @@ const KEYWORDS: Record<string, string[]> = {
   "Pentacles": ["material wealth", "career", "manifestation"]
 };
 
+// Element mapping for card analysis
+const CARD_ELEMENTS: Record<string, string> = {
+  "Fool": "Air", "Magician": "Air", "High Priestess": "Moon", "Empress": "Earth",
+  "Emperor": "Fire", "Hierophant": "Earth", "Lovers": "Air", "Chariot": "Fire",
+  "Strength": "Fire", "Hermit": "Earth", "Wheel of Fortune": "Fire", "Justice": "Air",
+  "Hanged Man": "Water", "Death": "Water", "Temperance": "Fire", "Devil": "Fire",
+  "Tower": "Fire", "Star": "Air", "Moon": "Water", "Sun": "Fire",
+  "Judgement": "Fire", "World": "Earth",
+  "Wands": "Fire", "Cups": "Water", "Swords": "Air", "Pentacles": "Earth"
+};
+
+const ELEMENT_MEANINGS: Record<string, string> = {
+  "Fire": "行動力、創造力、激情",
+  "Water": "情感、直覺、潛意識",
+  "Air": "思想、溝通、變化",
+  "Earth": "物質、穩定、實際"
+};
+
 export interface CardReadingInput {
   name: string;
   isReversed: boolean;
@@ -46,9 +63,16 @@ export interface StructuredReading {
   present: string;
   future: string;
   summary: string;
+  // New enhanced fields
+  cardAnalysis: {
+    element: string;
+    elementMeaning: string;
+    relationship: string;
+    advice: string;
+  };
 }
 
-// OFFLINE GENERATOR
+// OFFLINE GENERATOR with enhanced analysis
 function generateOfflineReading(cards: CardReadingInput[], question: string, language: string): StructuredReading {
   const isZh = language === 'zh-TW';
   
@@ -72,6 +96,32 @@ function generateOfflineReading(cards: CardReadingInput[], question: string, lan
     }
   };
 
+  // Get elements
+  const getElement = (cardName: string): string => {
+    for (const [key, elem] of Object.entries(CARD_ELEMENTS)) {
+      if (cardName.toLowerCase().includes(key.toLowerCase())) {
+        return elem;
+      }
+    }
+    // Default for minor arcana
+    if (cardName.toLowerCase().includes("wand")) return "Fire";
+    if (cardName.toLowerCase().includes("cup")) return "Water";
+    if (cardName.toLowerCase().includes("sword")) return "Air";
+    if (cardName.toLowerCase().includes("pentacle")) return "Earth";
+    return "Unknown";
+  };
+
+  const elements = cards.map(c => getElement(c.name));
+  const uniqueElements = [...new Set(elements)];
+  
+  let relationshipText = isZh 
+    ? `呢三張牌包含${uniqueElements.join('、')}能量，展現左一個獨特既能量組合。` 
+    : `These three cards contain ${uniqueElements.join(', ')} energy, showing a unique energy combination.`;
+    
+  const adviceText = isZh
+    ? `宇宙建議你將呢啲能量转化为行動。注意你既直覺，同時保持實際既態度。呢個係一個適合開始新計劃既時機。`
+    : `The universe advises you to transform these energies into action. Trust your intuition while maintaining a practical attitude. This is a good time to start new projects.`;
+
   const pastText = getCardText(cards[0]);
   const presentText = getCardText(cards[1]);
   const futureText = getCardText(cards[2]);
@@ -84,7 +134,13 @@ function generateOfflineReading(cards: CardReadingInput[], question: string, lan
     past: pastText,
     present: presentText,
     future: futureText,
-    summary: summaryText
+    summary: summaryText,
+    cardAnalysis: {
+      element: uniqueElements.join(' + '),
+      elementMeaning: uniqueElements.map(e => ELEMENT_MEANINGS[e] || e).join(' / '),
+      relationship: relationshipText,
+      advice: adviceText
+    }
   };
 }
 
@@ -102,23 +158,45 @@ export async function getTarotReading(cards: CardReadingInput[], question: strin
     `${c.position}: ${c.name} (${c.isReversed ? 'Reversed' : 'Upright'})`
   ).join('\n');
 
-  const systemInstruction = `You are a mystical Tarot Reader. Your response language must be ${language}.
-  You must return ONLY valid JSON that adheres to the provided schema.
-  Do not include markdown formatting (like \`\`\`json) or any text outside of the JSON structure.`;
+  const systemInstruction = language === 'zh-TW' 
+    ? `你係一位神秘既 Tarot 讀牌師。你既回應必須用繁體中文。你必須只回傳有效既 JSON，遵從以下既 schema。唔好包含 markdown 格式或者其他文字。`
+    : `You are a mystical Tarot Reader. Your response language must be ${language}. You must return ONLY valid JSON that adheres to the provided schema. Do not include markdown formatting (like \`\`\`json) or any text outside of the JSON structure.`;
 
-  const userPrompt = `
-  I have drawn a three-card spread (Past, Present, Future). Please provide a profound interpretation.
+  const userPrompt = language === 'zh-TW'
+    ? `
+我抽左三張牌（過去、現在、未來）。請提供一個深刻既解讀。
 
-  The cards drawn are:
-  ${spreadDescription}
+抽既牌係：
+${spreadDescription}
   
-  The question asked was: "${question || "General Guidance"}"
+用家問既問題係: "${question || "一般指引"}"
   
-  Based on this spread and question, please provide:
-  1.  A detailed interpretation for the "Past" card, explaining its influence on the current situation.
-  2.  A detailed interpretation for the "Present" card, explaining the current energies and challenges.
-  3.  A detailed interpretation for the "Future" card, showing the potential outcome or path forward.
-  4.  A final "Summary" that synthesizes the narrative arc of the three cards and offers specific, actionable spiritual advice related to the user's question.`;
+基於呢個牌陣同問題，請提供：
+1. 「過去」牌既詳細解讀，解釋佢對現況既影響。
+2. 「現在」牌既詳細解讀，解釋目前既能量同挑戰。
+3. 「未來」牌既詳細解讀，顯示潛在既結果或者未來既路向。
+4. 「總結」- 將三張牌既敘事融合，並提供針對用家問題既具體行動建議。
+5. 「元素分析」- 分析呢三張牌既元素組合（火焰、水、空氣、大地），解釋佢地既關係同埋呢種組合既特別意義。
+6. 「行動建議」- 具體既行動步驟，用家可以點樣將呢啲能量轉化為實際行動。
+
+請用溫暖、有洞察力既語氣回應，好似一個有智慧既導師。`
+    : `
+I have drawn a three-card spread (Past, Present, Future). Please provide a profound interpretation.
+
+The cards drawn are:
+${spreadDescription}
+  
+The question asked was: "${question || "General Guidance"}"
+  
+Based on this spread and question, please provide:
+1. A detailed interpretation for the "Past" card, explaining its influence on the current situation.
+2. A detailed interpretation for the "Present" card, explaining the current energies and challenges.
+3. A detailed interpretation for the "Future" card, showing the potential outcome or path forward.
+4. A final "Summary" that synthesizes the narrative arc of the three cards and offers specific, actionable spiritual advice related to the user's question.
+5. "Element Analysis" - Analyze the elemental combination (Fire, Water, Air, Earth) of these three cards, explain their relationship and the special meaning of this combination.
+6. "Action Advice" - Specific action steps on how the user can transform these energies into practical action.
+
+Respond with warmth and insight, like a wise mentor guiding someone through a transformative journey.`;
 
   try {
     const response = await ai.models.generateContent({
@@ -133,11 +211,21 @@ export async function getTarotReading(cards: CardReadingInput[], question: strin
             past: { type: Type.STRING, description: "Interpretation of the past card." },
             present: { type: Type.STRING, description: "Interpretation of the present card." },
             future: { type: Type.STRING, description: "Interpretation of the future card." },
-            summary: { type: Type.STRING, description: "A summary of the reading and spiritual advice." }
+            summary: { type: Type.STRING, description: "A summary of the reading and spiritual advice." },
+            cardAnalysis: { 
+              type: Type.OBJECT,
+              description: "Enhanced card analysis with elements and advice",
+              properties: {
+                element: { type: Type.STRING, description: "The combined element(s) of the cards" },
+                elementMeaning: { type: Type.STRING, description: "Meaning of the element combination" },
+                relationship: { type: Type.STRING, description: "How the cards relate to each other" },
+                advice: { type: Type.STRING, description: "Actionable advice for the user" }
+              }
+            }
           },
-          required: ["past", "present", "future", "summary"]
+          required: ["past", "present", "future", "summary", "cardAnalysis"]
         },
-        temperature: 0.7,
+        temperature: 0.8,
       }
     });
 

@@ -113,7 +113,7 @@ const UI_TEXT: Record<string, any> = {
     placeholder: '輸入您心中的疑惑...',
     channeling: '注入能量中...',
     hold: '長按水晶以感應能量',
-    drag_instruction: '將三張牌拖曳至下方對應位置',
+    drag_instruction: '點擊一張牌放入位置 / 拖曳至下方',
     draw_ready: '準備揭示',
     consultAgain: '開啟新解讀',
     loading: '星辰正在排列...',
@@ -128,6 +128,8 @@ const UI_TEXT: Record<string, any> = {
     summary_title: '來自宇宙的指引',
     pick_card: '選擇此牌',
     tap_anywhere: '點擊螢幕繼續',
+    element_analysis: '元素分析',
+    action_advice: '行動建議',
     questions: [
         '我目前的感情發展如何？',
         '我的事業會有突破嗎？',
@@ -141,7 +143,7 @@ const UI_TEXT: Record<string, any> = {
     placeholder: 'Type your question to the universe...',
     channeling: 'Channeling Energy...',
     hold: 'Press & Hold the Crystal to Connect',
-    drag_instruction: 'Drag 3 cards to the slots below',
+    drag_instruction: 'Tap a card to place / Drag to slots',
     draw_ready: 'Ready to Reveal',
     consultAgain: 'New Reading',
     loading: 'Aligning the stars...',
@@ -156,6 +158,8 @@ const UI_TEXT: Record<string, any> = {
     summary_title: 'Universal Guidance',
     pick_card: 'Pick Card',
     tap_anywhere: 'Tap to Continue',
+    element_analysis: 'Element Analysis',
+    action_advice: 'Action Advice',
     questions: [
         'What path should I take in my career?',
         'Is love coming into my life?',
@@ -169,7 +173,7 @@ const UI_TEXT: Record<string, any> = {
     placeholder: '心にある問いを入力してください...',
     channeling: 'エネルギーを注入中...',
     hold: '水晶を長押しして接続',
-    drag_instruction: '下のスロットにカードを3枚ドラッグ',
+    drag_instruction: 'カードをタップ/ドラッグ',
     draw_ready: '運命を明かす準備',
     consultAgain: '新たなリーディング',
     loading: '星々が整列しています...',
@@ -184,6 +188,8 @@ const UI_TEXT: Record<string, any> = {
     summary_title: '宇宙からの導き',
     pick_card: 'カードを選択',
     tap_anywhere: '画面をタップして続行',
+    element_analysis: '元素分析',
+    action_advice: '行動のアドバイス',
     questions: [
         '今の恋愛運はどうですか？',
         '仕事で成功するには？',
@@ -265,7 +271,29 @@ const App: React.FC = () => {
     }
   };
 
-  // --- GESTURE LOGIC ---
+  // --- GESTURE LOGIC (Mobile-Friendly: Tap to Select) ---
+  // For mobile, we use tap-to-select instead of drag
+  const handleCardTap = (card: CardData, indexInDeck: number) => {
+    if (step !== 'dealing') return;
+    
+    // Find first empty slot
+    const emptySlotIndex = drawnCards.findIndex(c => c === null);
+    if (emptySlotIndex === -1) return; // All slots filled
+    
+    const newDrawn = [...drawnCards];
+    const reversed = Math.random() < 0.2;
+    
+    newDrawn[emptySlotIndex] = {
+      card,
+      reversed,
+      positionLabel: emptySlotIndex === 0 ? 'Past' : emptySlotIndex === 1 ? 'Present' : 'Future'
+    };
+    
+    setDrawnCards(newDrawn);
+    setShuffledDeck(prevDeck => prevDeck.filter(c => c.image !== card.image));
+  };
+
+  // Legacy drag handlers (kept for desktop)
   const handleCardPointerDown = (e: React.PointerEvent, card: CardData, indexInDeck: number) => {
     if (!e.isPrimary || allSlotsFilled || draggedCardInfo) return;
     e.preventDefault();
@@ -480,6 +508,7 @@ const App: React.FC = () => {
                                     zIndex: i,
                                 }}
                                 onPointerDown={(e) => handleCardPointerDown(e, card, i)}
+                                onClick={() => handleCardTap(card, i)}
                             >
                                 <div className="card-inner-container">
                                     <CardBack small />
@@ -791,6 +820,41 @@ const App: React.FC = () => {
                                       <p className="text-zinc-200 font-serif text-justify drop-shadow-md reading-text">
                                           {getCurrentReadingText()}
                                       </p>
+                                      
+                                      {/* Element Analysis - Only show in summary */}
+                                      {activeReadingView === 'summary' && reading?.cardAnalysis && (
+                                        <div className="mt-8 space-y-4 animate-fade-in">
+                                          {/* Element Section */}
+                                          <div className="p-4 rounded-xl bg-gradient-to-r from-violet-900/30 to-indigo-900/30 border border-violet-500/20">
+                                            <h4 className="text-violet-300 font-mystic text-sm tracking-wider mb-2">
+                                              ✨ {t.element_analysis}
+                                            </h4>
+                                            <p className="text-zinc-300 text-sm">
+                                              {reading.cardAnalysis.element}
+                                            </p>
+                                            <p className="text-zinc-400 text-xs mt-1">
+                                              {reading.cardAnalysis.elementMeaning}
+                                            </p>
+                                          </div>
+                                          
+                                          {/* Relationship */}
+                                          <div className="p-4 rounded-xl bg-gradient-to-r from-amber-900/20 to-yellow-900/20 border border-amber-500/20">
+                                            <p className="text-zinc-300 text-sm">
+                                              {reading.cardAnalysis.relationship}
+                                            </p>
+                                          </div>
+                                          
+                                          {/* Action Advice */}
+                                          <div className="p-4 rounded-xl bg-gradient-to-r from-green-900/30 to-emerald-900/30 border border-green-500/20">
+                                            <h4 className="text-green-300 font-mystic text-sm tracking-wider mb-2">
+                                              🎯 {t.action_advice}
+                                            </h4>
+                                            <p className="text-zinc-300 text-sm">
+                                              {reading.cardAnalysis.advice}
+                                            </p>
+                                          </div>
+                                        </div>
+                                      )}
                                   </div>
                               </>
                           )}
