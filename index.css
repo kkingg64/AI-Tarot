@@ -3,19 +3,18 @@
 @tailwind utilities;
 
 /* ===========================
-   AI Tarot v3.0 - Modern Design System
+   AI Tarot v3.0 - Ultimate Mystical Design
    =========================== */
 
-/* Animation Delays */
-.delay-100 { animation-delay: 100ms; }
-.delay-200 { animation-delay: 200ms; }
-.delay-300 { animation-delay: 300ms; }
-.delay-400 { animation-delay: 400ms; }
-
-/* Custom Animations */
+/* Animation */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(245, 158, 11, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(245, 158, 11, 0.5); }
 }
 
 @keyframes float {
@@ -23,119 +22,19 @@
   50% { transform: translateY(-10px); }
 }
 
-@keyframes glow {
-  0%, 100% { box-shadow: 0 0 20px rgba(245, 158, 11, 0.3); }
-  50% { box-shadow: 0 0 40px rgba(245, 158, 11, 0.5); }
-}
-
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
-@keyframes pulse-glow {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
-}
-
 .animate-fade-in {
-  animation: fadeIn 0.5s ease-out forwards;
-}
-
-.animate-float {
-  animation: float 3s ease-in-out infinite;
-}
-
-.animate-glow {
-  animation: glow 2s ease-in-out infinite;
-}
-
-.animate-shimmer {
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-  background-size: 200% 100%;
-  animation: shimmer 2s infinite;
+  animation: fadeIn 0.6s ease-out forwards;
 }
 
 .animate-pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
 }
 
-/* Premium Badge Glow */
-@keyframes premium-glow {
-  0%, 100% { 
-    box-shadow: 0 0 20px rgba(245, 158, 11, 0.4), 
-                0 0 40px rgba(236, 72, 153, 0.2); 
-  }
-  50% { 
-    box-shadow: 0 0 30px rgba(245, 158, 11, 0.6), 
-                0 0 60px rgba(236, 72, 153, 0.4); 
-  }
+.animate-float {
+  animation: float 3s ease-in-out infinite;
 }
 
-.animate-glow {
-  animation: premium-glow 2s ease-in-out infinite;
-}
-
-/* Glass Effect */
-.glass {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-/* Gradient Text */
-.gradient-text {
-  background: linear-gradient(135deg, #F59E0B 0%, #EC4899 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* Scrollbar Hide */
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-
-/* Card Hover Effects */
-.card-hover {
-  transition: all 0.3s ease;
-}
-
-.card-hover:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 40px rgba(139, 92, 246, 0.2);
-}
-
-/* 3D Transform */
-.perspective-1000 {
-  perspective: 1000px;
-}
-
-.transform-style-3d {
-  transform-style: preserve-3d;
-}
-
-.backface-hidden {
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-}
-
-.rotate-y-180 {
-  transform: rotateY(180deg);
-}
-
-/* Text Glow */
-.text-glow-amber {
-  text-shadow: 0 0 8px rgba(251, 191, 36, 0.4), 0 0 20px rgba(251, 191, 36, 0.3);
-}
-
-/* 3D Transforms for Card Flip */
+/* 3D Card Flip */
 .perspective-1000 {
   perspective: 1000px;
 }
@@ -149,435 +48,52 @@
   -webkit-backface-visibility: hidden;
 }
 
-/* Card specific */
-.card-flip-container {
-  perspective: 1000px;
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
 }
 
-.card-inner {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  transition: transform 0.8s;
-  transform-style: preserve-3d;
+::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-.card-flip-container.flipped .card-inner {
-  transform: rotateY(180deg);
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
 }
 
-.card-front, .card-back {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  border-radius: 1rem;
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
 
-.card-front {
-  transform: rotateY(180deg);
-}
-
-/* Mystery glow effect */
-.card-glow {
-  box-shadow: 
-    0 0 20px rgba(139, 92, 246, 0.3),
-    0 0 40px rgba(236, 72, 153, 0.2),
-    0 10px 30px rgba(0, 0, 0, 0.5);
-}
-
-.card-glow:hover {
-  box-shadow: 
-    0 0 30px rgba(245, 158, 11, 0.4),
-    0 0 60px rgba(236, 72, 153, 0.3),
-    0 15px 40px rgba(0, 0, 0, 0.6);
-}
-  animation: slideInUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-
-.animate-slide-in-up-slow {
-  animation: slideInUp 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-
-
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-}
-
-.animate-float {
-  animation: float 4s ease-in-out infinite;
-}
-
-@keyframes spin-slow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-/* Custom, stable animation classes to replace arbitrary values */
-.animate-spin-slow-10s {
-  animation: spin-slow 10s linear infinite;
-}
-
-.animate-spin-slow-15s-reverse {
-  animation: spin-slow 15s linear infinite reverse;
-}
-
-@keyframes shine {
-  0% { transform: translateX(-100%) skewX(-15deg); }
-  100% { transform: translateX(200%) skewX(-15deg); }
-}
-
-.animate-shine {
-  animation: shine 1.5s infinite;
-}
-
-/* Responsive Card Sizes - Mobile First */
-.deck-card {
-  width: 22vw !important;
-  height: 35vw !important;
-  max-width: 90px !important;
-  max-height: 145px !important;
-}
-
-.deck-card-container {
-  transform: scale(0.85);
-  transform-origin: top center;
-}
-
-@media (min-width: 768px) {
-  .deck-card {
-    width: 7rem !important;
-    height: 11rem !important;
-  }
-  .deck-card-container {
-    transform: scale(1);
-  }
-}
-
-/* Touch-friendly slot sizes */
-.slot-card {
-  width: 24vw !important;
-  height: 38vw !important;
-  max-width: 100px !important;
-  max-height: 160px !important;
-}
-
-@media (min-width: 768px) {
-  .slot-card {
-    width: 8rem !important;
-    height: 12rem !important;
-  }
-}
-
-/* Responsive text sizes */
-.text-xs-mobile {
-  font-size: 0.65rem;
-  line-height: 1rem;
-}
-
-@media (min-width: 768px) {
-  .text-xs-mobile {
-    font-size: 0.75rem;
-    line-height: 1rem;
-  }
-}
-
-/* Larger touch targets */
-button, 
-.deck-card, 
-.slot-card {
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
-}
-
-/* Prevent zoom on double tap - Combined */
+/* Base */
 * {
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-.animate-deal {
-  animation: deal 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+html {
+  scroll-behavior: smooth;
 }
 
-/* Foil Gradient Effect */
-.foil-gradient {
-  background: linear-gradient(
-    115deg, 
-    transparent 20%, 
-    rgba(255, 255, 255, 0.4) 30%, 
-    rgba(255, 215, 0, 0.3) 40%, 
-    rgba(255, 0, 255, 0.2) 50%, 
-    rgba(0, 255, 255, 0.2) 60%, 
-    transparent 80%
-  );
-  background-size: 200% 200%;
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #0A0A0F;
+  color: #FAFAFA;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Scrollbar Hiding */
-.scrollbar-hide::-webkit-scrollbar {
-    display: none;
-}
-.scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+/* Focus states */
+button:focus,
+input:focus,
+textarea:focus {
+  outline: none;
 }
 
-/* Brighter Dealing Screen Effect */
-.dealing-glow-active::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 1200px;
-  height: 1200px;
-  transform: translate(-50%, -50%);
-  background-image: radial-gradient(circle, rgba(124, 58, 23, 0.25) 0%, transparent 60%);
-  filter: blur(80px);
-  opacity: 0;
-  animation: fadeIn 1.5s 0.5s ease-out forwards;
-  z-index: 0;
-}
-
-
-/* Circular Card Fan Layout */
-.deck-card-container {
-  position: relative;
-  width: 100%;
-  height: 440px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-@media (min-width: 768px) {
-  .deck-card-container {
-    height: 600px;
-  }
-}
-
-.deck-card {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 90px;
-  height: 140px;
-  transform-origin: center center;
-  will-change: transform;
-  cursor: grab;
-}
-
-.card-inner-container {
-  width: 100%;
-  height: 100%;
-  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), filter 0.3s;
-  filter: brightness(0.85); /* Slightly dim cards by default */
-}
-
-.deck-card:hover {
-  z-index: 50 !important;
-}
-
-.deck-card:hover .card-inner-container {
-  transform: translateY(-20px) scale(1.15);
-  filter: brightness(1.2) drop-shadow(0 0 20px rgba(251, 191, 36, 0.7));
-}
-
-
-.deck-card:active {
-  cursor: grabbing;
-}
-
-
-/* Custom Scrollbar for Reading Panel */
-.reading-panel-content::-webkit-scrollbar {
-  width: 8px;
-}
-.reading-panel-content::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 10px;
-}
-.reading-panel-content::-webkit-scrollbar-thumb {
-  background: rgba(251, 191, 36, 0.4);
-  border-radius: 10px;
-}
-.reading-panel-content::-webkit-scrollbar-thumb:hover {
-  background: rgba(251, 191, 36, 0.6);
-}
-
-.reading-text {
-  font-size: 1.125rem; /* text-lg */
-  line-height: 2rem; /* leading-8 */
-}
-@media (min-width: 768px) { /* md breakpoint */
-  .reading-text {
-    font-size: 1.25rem; /* text-xl */
-    line-height: 2.25rem; /* leading-9 */
-  }
-}
-
-/* Custom class to replace unstable arbitrary value for drop shadow */
-.drop-shadow-violet {
-  filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.8));
-}
-
-/* Replaces translate-y-[-2vh] */
-.header-shift-draw {
-  transform: translateY(-2vh);
-}
-
-/* Responsive card dimensions */
-.tarot-card-dimensions {
-  width: 10rem; /* 160px */
-  height: 17.5rem; /* 280px */
-}
-@media (min-width: 640px) { /* sm breakpoint */
-  .tarot-card-dimensions {
-    width: 12rem; /* 192px */
-    height: 21rem; /* 336px */
-  }
-}
-@media (min-width: 768px) { /* md breakpoint */
-  .tarot-card-dimensions {
-    width: 14rem; /* 224px */
-    height: 24.5rem; /* 392px */
-  }
-}
-@media (min-width: 1024px) { /* lg breakpoint */
-  .tarot-card-dimensions {
-    width: 16rem; /* 256px */
-    height: 28rem; /* 448px */
-  }
-}
-
-/* Replaces duration-[1500ms] */
-.duration-1500 {
-  transition-duration: 1500ms;
-}
-
-/* Replaces translate-x-[-200%] and translate-x-[200%] */
-.translate-x-neg-full-200 {
-  transform: translateX(-200%);
-}
-.translate-x-pos-full-200 {
-  transform: translateX(200%);
-}
-
-/* === STABILITY FIXES FOR JIT COMPILER CRASHES === */
-
-/* Replaces invalid cubic-bezier() in className */
-.transition-timing-card-flip {
-  transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-/* Replaces bg-[radial-gradient(...)] for reveal flash */
-.bg-reveal-burst {
-  background-image: radial-gradient(circle at center, rgba(255,255,255,0.3) 0%, transparent 70%);
-}
-
-/* Replaces bg-[radial-gradient(...)] for image vignette */
-.bg-vignette-overlay {
-  background-image: radial-gradient(circle at center, transparent 50%, rgba(0,0,0,0.6) 100%);
-}
-
-/* Card back color */
-.bg-card-dark {
-  background-color: #1a1a2e;
-}
-
-/* Replaces w-[300%] and h-[300%] */
-.w-300-percent { width: 300%; }
-.h-300-percent { height: 300%; }
-
-/* Replaces z-[60] and z-[100] */
-.z-60 { z-index: 60; }
-.z-100 { z-index: 100; }
-
-/* Replaces h-[1px] */
-.h-1px { height: 1px; }
-
-/* Replaces text-[9px], text-[10px], text-[11px] */
-.text-9px { font-size: 9px; }
-.text-10px { font-size: 10px; }
-.text-11px { font-size: 11px; }
-
-/* Replaces rotate-[-90deg] */
-.rotate-neg-90 {
-  transform: rotate(-90deg);
-}
-
-@keyframes bounce-short {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
-}
-
-.animate-bounce-short {
-  animation: bounce-short 0.5s ease-in-out;
-}
-
-/* ========================================
-   SAFE MOBILE OPTIMIZATIONS
-   ======================================== */
-
-/* Prevent zoom on double tap */
-* {
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* Bigger buttons for touch */
-@media (max-width: 480px) {
-  /* Bigger touch targets */
-  button {
-    min-height: 48px !important;
-    padding: 14px 24px !important;
-    font-size: 16px !important; /* Prevent iOS zoom */
-  }
-  
-  /* Bigger input */
-  input {
-    font-size: 16px !important;
-  }
-  
-  /* Question buttons bigger */
-  .rounded-full.text-11px {
-    font-size: 13px !important;
-    padding: 10px 16px !important;
-  }
-}
-
-/* ========================================
-   MOBILE FIXES - Simple & Safe
-   ======================================== */
-
-/* Larger buttons on mobile */
-@media (max-width: 640px) {
-  /* Make all buttons bigger for touch */
-  button {
-    min-height: 48px !important;
-    padding: 12px 20px !important;
-  }
-  
-  /* Reduce card sizes slightly */
-  .deck-card {
-    width: 18vw !important;
-    max-width: 70px !important;
-    height: 28vw !important;
-    max-height: 110px !important;
-  }
-  
-  /* Smaller slot cards */
-  .slot-card {
-    width: 28vw !important;
-    max-width: 100px !important;
-    height: 44vw !important;
-    max-height: 160px !important;
-  }
-  
-  /* Adjust deck container */
-  .deck-card-container {
-    transform: scale(0.6) !important;
-  }
+/* Custom Selection */
+::selection {
+  background: rgba(139, 92, 246, 0.3);
+  color: white;
 }
