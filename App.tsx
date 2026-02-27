@@ -225,6 +225,7 @@ const App: React.FC = () => {
   const [channelingProgress, setChannelingProgress] = useState(0);
   const [language, setLanguage] = useState('zh-TW');
   const [showLangMenu, setShowLangMenu] = useState(false);
+  const [showPremium, setShowPremium] = useState(false);
   const [sessionId, setSessionId] = useState(1);
 
   const t = UI_TEXT[language] || UI_TEXT['en'];
@@ -478,6 +479,15 @@ const App: React.FC = () => {
               {t.subtitle}
           </p>
       </header>
+      
+      {/* PREMIUM BADGE */}
+      <button 
+        onClick={(e) => { e.stopPropagation(); setShowPremium(true); }}
+        className="absolute top-4 left-4 z-60 flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-amber-500 to-pink-500 rounded-full text-xs font-bold text-white shadow-lg hover:shadow-amber-500/30 transition-all hover:scale-105"
+      >
+        <span>💎</span>
+        <span>Pro</span>
+      </button>
       
       {/* MAIN CONTENT */}
       <main className={`relative z-10 flex flex-col items-center w-full max-w-7xl flex-grow ${step === 'intro' || step === 'channeling' ? 'justify-center' : 'justify-start'} ${step === 'drawing' ? 'pb-8' : ''}`}>
@@ -874,6 +884,77 @@ const App: React.FC = () => {
                   </div>
               </div>
           </div>
+      )}
+      
+      {/* PREMIUM MODAL */}
+      {showPremium && (
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+          onClick={() => setShowPremium(false)}
+        >
+          <div 
+            className="relative w-full max-w-sm bg-gradient-to-b from-zinc-900 to-black rounded-3xl p-6 border border-amber-500/30 shadow-2xl shadow-amber-500/10"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button 
+              onClick={() => setShowPremium(false)}
+              className="absolute top-4 right-4 text-zinc-500 hover:text-white"
+            >
+              <XMarkIcon className="w-6 h-6" />
+            </button>
+            
+            <div className="text-center mb-6">
+              <span className="text-5xl mb-2 block">💎</span>
+              <h2 className="text-2xl font-mystic bg-gradient-to-r from-amber-400 to-pink-400 bg-clip-text text-transparent">
+                升級 Pro
+              </h2>
+              <p className="text-zinc-400 text-sm mt-2">解鎖全部功能</p>
+            </div>
+            
+            <div className="space-y-3 mb-6">
+              <div className="flex items-center gap-3 text-zinc-300">
+                <span className="text-xl">∞</span>
+                <div>
+                  <p className="font-medium">無限占卜</p>
+                  <p className="text-xs text-zinc-500">每日無限次使用</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 text-zinc-300">
+                <span className="text-xl">📊</span>
+                <div>
+                  <p className="font-medium">詳細解讀</p>
+                  <p className="text-xs text-zinc-500">更深層次意義</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 text-zinc-300">
+                <span className="text-xl">🎯</span>
+                <div>
+                  <p className="font-medium">追問功能</p>
+                  <p className="text-xs text-zinc-500">AI 深入分析</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 text-zinc-300">
+                <span className="text-xl">🔇</span>
+                <div>
+                  <p className="font-medium">無廣告</p>
+                  <p className="text-xs text-zinc-500">純淨體驗</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="text-center mb-4">
+              <span className="text-2xl font-bold text-zinc-500 line-through mr-2">$9.99</span>
+              <span className="text-3xl font-bold bg-gradient-to-r from-amber-400 to-pink-400 bg-clip-text text-transparent">$4.99</span>
+              <span className="text-zinc-500">/月</span>
+            </div>
+            
+            <button className="w-full py-3 bg-gradient-to-r from-amber-500 to-pink-500 rounded-xl font-bold text-white hover:opacity-90 transition-opacity">
+              立即訂閱
+            </button>
+            
+            <p className="text-center text-zinc-500 text-xs mt-3">隨時取消 • 無風險試用</p>
+          </div>
+        </div>
       )}
     </div>
   );
