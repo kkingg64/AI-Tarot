@@ -5,6 +5,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { TAROT_DECK, POSITIONS, drawCards, generateReading } from './tarotData';
 
 // ===========================
 // 調色板 - Mystical Purple & Gold
@@ -341,7 +342,8 @@ const TarotApp = () => {
   const [spread, setSpread] = useState('three');
   const [question, setQuestion] = useState('');
   const [isDrawing, setIsDrawing] = useState(false);
-  const [cards, setCards] = useState<{ icon: string; name: string; position: string }[]>([]);
+  const [cards, setCards] = useState<any[]>([]);
+  const [reading, setReading] = useState<any>(null);
   const [showPremium, setShowPremium] = useState(false);
   const [language, setLanguage] = useState('zh-TW');
   const [showLangMenu, setShowLangMenu] = useState(false);
@@ -389,13 +391,17 @@ const TarotApp = () => {
   const handleDraw = () => {
     setStep('drawing');
     setIsDrawing(true);
+    
+    // 使用本地塔羅牌數據抽牌
     setTimeout(() => {
-      const drawnCards = [
-        { icon: '🌟', name: '愚者 (The Fool)', position: language === 'zh-TW' ? '過去' : 'Past' },
-        { icon: '💕', name: '戀人 (The Lovers)', position: language === 'zh-TW' ? '現在' : 'Present' },
-        { icon: '🌙', name: '月亮 (The Moon)', position: language === 'zh-TW' ? '未來' : 'Future' },
-      ];
-      setCards(drawnCards);
+      const drawnCards = drawCards(3); // 抽3張牌
+      const reading = generateReading(drawnCards, question || '你的命運', language);
+      
+      console.log('Draw result:', drawnCards);
+      console.log('Reading:', reading);
+      
+      setCards(reading.cards);
+      setReading(reading);
       setIsDrawing(false);
       setStep('result');
     }, 3000);
@@ -591,21 +597,81 @@ const TarotApp = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
         >
-          <div className="relative z-10 flex justify-center gap-4 px-6 py-8">
+          {/* Cards */}
+          <div className="relative z-10 flex justify-center gap-4 px-6 py-8 flex-wrap">
             {cards.map((card, i) => (
               <TarotCard3D
                 key={i}
-                card={card}
-                position={card.position}
+                card={card.card}
+                position={card.positionName}
                 isFlipped={true}
                 delay={i * 0.3}
               />
             ))}
           </div>
           
+          {/* Reading Content */}
+          {reading && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1 }}
+              className="relative z-10 px-6 pb-6"
+            >
+              {/* Question */}
+              <div className="text-center mb-6">
+                <p className="text-gray-400 text-sm">你的問題</p>
+                <p className="text-white text-lg font-medium">{reading.question}</p>
+              </div>
+              
+              {/* Detailed Reading */}
+              <div className="max-w-2xl mx-auto space-y-6">
+                {reading.cards.map((item: any, i: number) => (
+                  <div 
+                    key={i}
+                    className="rounded-2xl p-5 border"
+                    style={{
+                      background: 'rgba(255,255,255,0.02)',
+                      borderColor: 'rgba(245, 158, 11, 0.2)',
+                    }}
+                  >
+                    <div className="flex items-center gap-3 mb-3">
+                      <span className="text-2xl">{item.card.icon}</span>
+                      <div>
+                        <h3 className="text-amber-400 font-cinzel font-bold">
+                          {item.card.name} - {item.positionName}
+                        </h3>
+                        <p className="text-xs text-gray-500">{item.card.nameEn}</p>
+                      </div>
+                    </div>
+                    <p className="text-gray-300 text-sm leading-relaxed">
+                      {item.angle}
+                    </p>
+                    <p className="text-gray-400 text-sm mt-2 italic">
+                      💫 {item.meaning}
+                    </p>
+                  </div>
+                ))}
+                
+                {/* Summary */}
+                <div 
+                  className="rounded-2xl p-5 border text-center"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(245,158,11,0.1) 0%, rgba(139,92,246,0.1) 100%)',
+                    borderColor: 'rgba(245, 158, 11, 0.3)',
+                  }}
+                >
+                  <p className="text-amber-400 font-cinzel mb-2">✨ 綜合建議</p>
+                  <p className="text-gray-300 text-sm">{reading.summary}</p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+          
+          {/* Reset Button */}
           <div className="relative z-10 px-6 pb-12">
             <motion.button
-              onClick={() => { setStep('welcome'); setCards([]); }}
+              onClick={() => { setStep('welcome'); setCards([]); setReading(null); }}
               className="w-full max-w-md mx-auto py-4 rounded-2xl font-bold text-lg block"
               style={{
                 background: 'rgba(255,255,255,0.1)',
