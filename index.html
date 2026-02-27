@@ -63,13 +63,14 @@
             z-index: 0;
         }
 
-        /* Header */
+        /* Header - Glassmorphism */
         header {
             position: sticky;
             top: 0;
             z-index: 100;
-            background: rgba(15, 15, 26, 0.85);
+            background: rgba(15, 15, 26, 0.8);
             backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             padding: 16px 20px;
             padding-top: calc(16px + env(safe-area-inset-top));
             border-bottom: 1px solid rgba(255,255,255,0.05);
@@ -87,15 +88,36 @@
             font-family: 'Cinzel', serif;
             font-size: 1.5rem;
             font-weight: 700;
-            background: linear-gradient(135deg, var(--secondary), var(--accent-pink));
+            background: linear-gradient(135deg, #f59e0b, #ec4899);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
 
+        /* Premium Badge */
+        .premium-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            background: linear-gradient(135deg, #f59e0b, #ec4899);
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .premium-badge:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+        }
+
         .header-actions {
             display: flex;
             gap: 12px;
+            align-items: center;
         }
 
         .icon-btn {
@@ -138,11 +160,17 @@
             font-size: 2rem;
             margin-bottom: 8px;
             line-height: 1.2;
+            background: linear-gradient(135deg, #f8fafc, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .hero p {
             color: var(--text-secondary);
             font-size: 1rem;
+            max-width: 300px;
+            margin: 0 auto;
         }
 
         /* Card Display Area */
@@ -671,6 +699,9 @@
         <div class="header-content">
             <div class="logo">✨ AI Tarot</div>
             <div class="header-actions">
+                <button class="premium-badge" id="premiumBtn">
+                    💎 Pro
+                </button>
                 <button class="icon-btn" id="historyBtn" aria-label="History">📜</button>
                 <button class="icon-btn" id="settingsBtn" aria-label="Settings">⚙️</button>
             </div>
@@ -1262,6 +1293,218 @@
                     }
                 });
             }
+        });
+    </script>
+    
+    <!-- Premium Modal -->
+    <div class="modal" id="premiumModal">
+        <div class="modal-content">
+            <button class="modal-close" id="premiumClose">&times;</button>
+            <div class="premium-header">
+                <span class="premium-icon">💎</span>
+                <h2>升級 Pro</h2>
+                <p>解鎖全部功能</p>
+            </div>
+            <div class="premium-features">
+                <div class="premium-feature">
+                    <span>∞</span>
+                    <div>
+                        <strong>無限占卜</strong>
+                        <small>每日無限次使用</small>
+                    </div>
+                </div>
+                <div class="premium-feature">
+                    <span>📊</span>
+                    <div>
+                        <strong>詳細解讀</strong>
+                        <small>更深層次意義</small>
+                    </div>
+                </div>
+                <div class="premium-feature">
+                    <span>🎯</span>
+                    <div>
+                        <strong>追問功能</strong>
+                        <small>AI 深入分析</small>
+                    </div>
+                </div>
+                <div class="premium-feature">
+                    <span>🔇</span>
+                    <div>
+                        <strong>無廣告</strong>
+                        <small>純淨體驗</small>
+                    </div>
+                </div>
+            </div>
+            <div class="premium-price">
+                <span class="price-original">$9.99</span>
+                <span class="price-current">$4.99</span>
+                <span class="price-period">/月</span>
+            </div>
+            <button class="btn btn-primary" id="subscribeBtn">
+                立即訂閱
+            </button>
+            <p class="premium-note">隨時取消 • 無風險試用</p>
+        </div>
+    </div>
+    
+    <style>
+        /* Premium Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .modal.show {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: linear-gradient(145deg, #1a1a2e, #0f0f1a);
+            border-radius: 24px;
+            padding: 32px;
+            max-width: 360px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(245, 158, 11, 0.1);
+            animation: modalIn 0.3s ease-out;
+        }
+        
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 4px 8px;
+        }
+        
+        .premium-header {
+            margin-bottom: 24px;
+        }
+        
+        .premium-icon {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 8px;
+        }
+        
+        .premium-header h2 {
+            font-family: 'Cinzel', serif;
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, #f59e0b, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 4px;
+        }
+        
+        .premium-header p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .premium-features {
+            text-align: left;
+            margin-bottom: 24px;
+        }
+        
+        .premium-feature {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .premium-feature span {
+            font-size: 1.5rem;
+            width: 40px;
+            text-align: center;
+        }
+        
+        .premium-feature strong {
+            display: block;
+            color: var(--text-primary);
+        }
+        
+        .premium-feature small {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+        
+        .premium-price {
+            margin-bottom: 20px;
+        }
+        
+        .price-original {
+            text-decoration: line-through;
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+        }
+        
+        .price-current {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #f59e0b, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0 8px;
+        }
+        
+        .price-period {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .premium-note {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            margin-top: 12px;
+        }
+    </style>
+    
+    <script>
+        // Premium Modal
+        const premiumModal = document.getElementById('premiumModal');
+        const premiumBtn = document.getElementById('premiumBtn');
+        const premiumClose = document.getElementById('premiumClose');
+        const subscribeBtn = document.getElementById('subscribeBtn');
+        
+        premiumBtn?.addEventListener('click', () => {
+            premiumModal?.classList.add('show');
+        });
+        
+        premiumClose?.addEventListener('click', () => {
+            premiumModal?.classList.remove('show');
+        });
+        
+        premiumModal?.addEventListener('click', (e) => {
+            if (e.target === premiumModal) {
+                premiumModal.classList.remove('show');
+            }
+        });
+        
+        subscribeBtn?.addEventListener('click', () => {
+            showToast('💎 訂閱功能即將推出！');
         });
     </script>
 </body>
