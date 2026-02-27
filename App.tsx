@@ -316,6 +316,16 @@ const TarotApp = () => {
           animate={{ opacity: 1 }}
           className="px-6 pb-8 text-center"
         >
+          {/* Main Title */}
+          <h1 
+            className="text-3xl md:text-4xl font-bold mb-2"
+            style={{ fontFamily: 'Cinzel, serif', background: 'linear-gradient(180deg, #FAFAFA 0%, #FBBF24 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}
+          >
+            {t.title}
+            <span className="text-xs ml-2 text-amber-400/60 align-top">v3.0</span>
+          </h1>
+          <p className="text-gray-500 text-xs mb-6 tracking-widest">{t.subtitle}</p>
+          
           <div className="text-6xl mb-4 animate-pulse">🔮</div>
           <p className="text-gray-400 mb-6 max-w-sm mx-auto text-sm">
             {language === 'zh-TW' 
