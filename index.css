@@ -134,6 +134,65 @@
 .text-glow-amber {
   text-shadow: 0 0 8px rgba(251, 191, 36, 0.4), 0 0 20px rgba(251, 191, 36, 0.3);
 }
+
+/* 3D Transforms for Card Flip */
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Card specific */
+.card-flip-container {
+  perspective: 1000px;
+}
+
+.card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.8s;
+  transform-style: preserve-3d;
+}
+
+.card-flip-container.flipped .card-inner {
+  transform: rotateY(180deg);
+}
+
+.card-front, .card-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 1rem;
+}
+
+.card-front {
+  transform: rotateY(180deg);
+}
+
+/* Mystery glow effect */
+.card-glow {
+  box-shadow: 
+    0 0 20px rgba(139, 92, 246, 0.3),
+    0 0 40px rgba(236, 72, 153, 0.2),
+    0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.card-glow:hover {
+  box-shadow: 
+    0 0 30px rgba(245, 158, 11, 0.4),
+    0 0 60px rgba(236, 72, 153, 0.3),
+    0 15px 40px rgba(0, 0, 0, 0.6);
+}
   animation: slideInUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 

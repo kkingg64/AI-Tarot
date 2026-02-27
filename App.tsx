@@ -175,7 +175,7 @@ const SpreadSelector = ({
   );
 };
 
-// Card Display Area
+// Card Display Area - With Mystery Card Design
 const CardArea = ({ 
   onDraw, 
   isDrawing,
@@ -185,16 +185,68 @@ const CardArea = ({
   isDrawing: boolean;
   cards: any[];
 }) => {
+  // Card Back Design - Mysterious Totem
+  const CardBack = () => (
+    <div className="w-32 h-48 md:w-40 md:h-56 rounded-2xl bg-gradient-to-br from-purple-900 via-purple-800 to-pink-900 border-2 border-amber-500/30 shadow-2xl shadow-purple-500/20 flex items-center justify-center relative overflow-hidden">
+      {/* Mystical pattern */}
+      <div className="absolute inset-0 opacity-20">
+        <svg viewBox="0 0 100 100" className="w-full h-full">
+          <defs>
+            <pattern id="mystic" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+              <circle cx="10" cy="10" r="2" fill="rgba(251, 191, 36, 0.3)" />
+              <path d="M10 0 L10 20 M0 10 L20 10" stroke="rgba(251, 191, 36, 0.2)" strokeWidth="0.5" />
+            </pattern>
+          </defs>
+          <rect width="100" height="100" fill="url(#mystic)" />
+        </svg>
+      </div>
+      {/* Central symbol */}
+      <div className="text-5xl opacity-60 z-10">🔮</div>
+      {/* Corner decorations */}
+      <div className="absolute top-2 left-2 text-amber-400/50 text-xs">⚜</div>
+      <div className="absolute top-2 right-2 text-amber-400/50 text-xs rotate-90">⚜</div>
+      <div className="absolute bottom-2 left-2 text-amber-400/50 text-xs rotate-180">⚜</div>
+      <div className="absolute bottom-2 right-2 text-amber-400/50 text-xs -rotate-90">⚜</div>
+    </div>
+  );
+
+  // Card Front Design
+  const CardFront = ({ card, position }: { card: any; position: string }) => (
+    <div className="w-32 h-48 md:w-40 md:h-56 rounded-2xl bg-gradient-to-br from-zinc-800 to-zinc-900 border-2 border-amber-400/50 shadow-2xl shadow-amber-500/20 p-4 flex flex-col items-center justify-center">
+      <div className="text-5xl mb-3">{card.icon}</div>
+      <div className="text-amber-400 font-serif text-lg mb-1">{card.name}</div>
+      <div className="text-zinc-500 text-xs uppercase tracking-widest">{position}</div>
+      <div className="w-12 h-px bg-gradient-to-r from-transparent via-amber-500/50 to-transparent mt-2" />
+    </div>
+  );
+
   if (cards.length > 0) {
     return (
-      <div className="relative z-10 flex justify-center gap-4 px-6 py-8 animate-fade-in">
+      <div className="relative z-10 flex justify-center gap-2 md:gap-4 px-6 py-8">
         {cards.map((card, i) => (
-          <div 
+          <motion.div
             key={i}
-            className="w-32 h-48 md:w-40 md:h-56 rounded-2xl bg-gradient-to-br from-purple-600 to-pink-600 border-2 border-amber-400/30 shadow-2xl shadow-purple-500/20 flex items-center justify-center transform hover:scale-105 transition-transform"
+            className="relative"
+            initial={{ rotateY: 0, scale: 0.8, opacity: 0 }}
+            animate={{ rotateY: 180, scale: 1, opacity: 1 }}
+            transition={{ duration: 0.8, delay: i * 0.3, type: "spring", stiffness: 100, damping: 20 }}
+            style={{ transformStyle: 'preserve-3d', perspective: 1000 }}
           >
-            <span className="text-4xl">{card.icon}</span>
-          </div>
+            {/* Card Back (shown first) */}
+            <motion.div
+              className="absolute inset-0"
+              style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}
+            >
+              <CardBack />
+            </motion.div>
+            {/* Card Front (shown after flip) */}
+            <motion.div
+              className="absolute inset-0"
+              style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
+            >
+              <CardFront card={card} position={card.position} />
+            </motion.div>
+          </motion.div>
         ))}
       </div>
     );
