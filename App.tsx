@@ -432,16 +432,22 @@ const TarotApp = () => {
   }[language] || t['zh-TW'];
 
   const handleDraw = () => {
+    console.log('Drawing cards...');
     setIsDrawing(true);
+    
+    // Use setTimeout to simulate reading
     setTimeout(() => {
-      const drawnCards = [
-        { icon: '🌟', name: '愚者', position: '過去' },
-        { icon: '💕', name: '戀人', position: '現在' },
-        { icon: '🌙', name: '月亮', position: '未來' },
+      const newCards = [
+        { icon: '🌟', name: '愚者 (The Fool)', position: '過去' },
+        { icon: '💕', name: '戀人 (The Lovers)', position: '現在' },
+        { icon: '🌙', name: '月亮 (The Moon)', position: '未來' },
       ];
-      setCards(drawnCards);
+      
+      console.log('Setting cards:', newCards);
+      setCards(newCards);
       setIsDrawing(false);
       setStep('result');
+      console.log('Done - cards:', newCards.length);
     }, 2000);
   };
 
