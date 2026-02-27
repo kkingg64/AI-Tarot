@@ -218,8 +218,35 @@ const TarotCard3D = ({ card, position, isFlipped, delay }: {
 );
 
 // ===========================
-// Premium Badge
+// Step Indicator Component
 // ===========================
+const StepIndicator = ({ currentStep, steps }: { currentStep: number; steps: string[] }) => (
+  <div className="flex items-center justify-center gap-2 mb-8">
+    {steps.map((step, i) => (
+      <React.Fragment key={i}>
+        <div className="flex items-center gap-2">
+          <div 
+            className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
+              i + 1 < currentStep 
+                ? 'bg-green-500 text-white' 
+                : i + 1 === currentStep 
+                  ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/30'
+                  : 'bg-white/10 text-gray-500'
+            }`}
+          >
+            {i + 1 < currentStep ? '✓' : i + 1}
+          </div>
+          <span className={`text-sm ${i + 1 === currentStep ? 'text-white' : 'text-gray-500'}`}>
+            {step}
+          </span>
+        </div>
+        {i < steps.length - 1 && (
+          <div className={`w-8 h-px ${i + 1 < currentStep ? 'bg-green-500' : 'bg-white/10'}`} />
+        )}
+      </React.Fragment>
+    ))}
+  </div>
+);
 const PremiumBadge = ({ onClick }: { onClick: () => void }) => (
   <motion.button
     onClick={onClick}
@@ -310,7 +337,7 @@ const LanguageSelector = ({
 // 主應用
 // ===========================
 const TarotApp = () => {
-  const [step, setStep] = useState<'intro' | 'drawing' | 'result'>('intro');
+  const [step, setStep] = useState<'welcome' | 'spread' | 'question' | 'drawing' | 'result'>('welcome');
   const [spread, setSpread] = useState('three');
   const [question, setQuestion] = useState('');
   const [isDrawing, setIsDrawing] = useState(false);
@@ -318,6 +345,12 @@ const TarotApp = () => {
   const [showPremium, setShowPremium] = useState(false);
   const [language, setLanguage] = useState('zh-TW');
   const [showLangMenu, setShowLangMenu] = useState(false);
+
+  const steps = {
+    'zh-TW': ['歡迎', '選擇牌陣', '專注問題', '抽牌', '解讀結果'],
+    'en': ['Welcome', 'Select Spread', 'Focus Question', 'Draw Cards', 'Reading'],
+    'ja': ['ようこそ', 'スプレッド選択', '質問に集中', 'カードを引く', '解釈'],
+  };
 
   const titles = {
     'zh-TW': { title: '智能塔羅牌', subtitle: '未來之鏡' },
@@ -332,9 +365,29 @@ const TarotApp = () => {
     { id: 'horseshoe', name: '馬蹄鐵', icon: '🧲', desc: '運勢大全' },
   ];
 
+  const stepTitles = {
+    'zh-TW': ['歡迎使用', '選擇牌陣', '專注你的問題', '宇宙能量匯聚', '解讀結果'],
+    'en': ['Welcome', 'Choose Your Spread', 'Focus Your Question', 'Universe Energy', 'Your Reading'],
+    'ja': ['ようこそ', 'スプレッド選択', '質問に集中', '宇宙エネルギー', '解釈結果'],
+  };
+
   const t = titles[language as keyof typeof titles] || titles['zh-TW'];
+  const currentSteps = steps[language as keyof typeof steps] || steps['zh-TW'];
+  const currentStepTitles = stepTitles[language as keyof typeof stepTitles] || stepTitles['zh-TW'];
+
+  const stepIndex = { 'welcome': 0, 'spread': 1, 'question': 2, 'drawing': 3, 'result': 4 };
+  const currentStepNum = stepIndex[step] + 1;
+
+  const handleNext = () => {
+    const order = ['welcome', 'spread', 'question', 'drawing', 'result'];
+    const currentIdx = order.indexOf(step);
+    if (currentIdx < order.length - 1) {
+      setStep(order[currentIdx + 1] as typeof step);
+    }
+  };
 
   const handleDraw = () => {
+    setStep('drawing');
     setIsDrawing(true);
     setTimeout(() => {
       const drawnCards = [
@@ -345,7 +398,7 @@ const TarotApp = () => {
       setCards(drawnCards);
       setIsDrawing(false);
       setStep('result');
-    }, 2500);
+    }, 3000);
   };
 
   return (
@@ -360,48 +413,61 @@ const TarotApp = () => {
         setIsOpen={setShowLangMenu}
       />
       
-      {/* Hero */}
-      <motion.section
-        initial="hidden"
-        animate="visible"
-        variants={staggerContainer}
-        className="relative z-10 text-center px-6 pt-20 pb-8"
-      >
-        <motion.h1 
-          variants={fadeInUp}
-          className="text-4xl md:text-6xl font-bold mb-3"
-          style={{
-            fontFamily: 'Cinzel, serif',
-            background: 'linear-gradient(180deg, #FAFAFA 0%, #FBBF24 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-          }}
-        >
-          {t.title}
-          <span className="text-xs ml-2 text-amber-400/60">v3.0</span>
-        </motion.h1>
-        <motion.p 
-          variants={fadeInUp}
-          className="text-gray-500 text-sm tracking-widest uppercase"
-        >
-          {t.subtitle}
-        </motion.p>
-      </motion.section>
+      {/* Step Indicator */}
+      <StepIndicator currentStep={currentStepNum} steps={currentSteps} />
 
-      {/* Spread Selection */}
-      {step === 'intro' && (
+      {/* Step Title */}
+      <motion.h2
+        key={step}
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-2xl md:text-3xl font-bold text-center mb-8"
+        style={{ fontFamily: 'Cinzel, serif', color: '#F59E0B' }}
+      >
+        {currentStepTitles[stepIndex[step]]}
+      </motion.h2>
+
+      {/* Welcome Step */}
+      {step === 'welcome' && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="relative z-10 px-6 pb-12 text-center"
+        >
+          <div className="text-8xl mb-6 animate-float">🔮</div>
+          <p className="text-gray-400 mb-8 max-w-md mx-auto">
+            {language === 'zh-TW' 
+              ? '歡迎來到未來之鏡。準備好探索你的命運了嗎？'
+              : 'Welcome to the Mirror of Destiny. Are you ready to explore your fate?'}
+          </p>
+          <motion.button
+            onClick={handleNext}
+            className="px-12 py-4 rounded-2xl font-bold text-lg"
+            style={{
+              background: THEME.gradients.gold,
+              boxShadow: '0 10px 30px rgba(245, 158, 11, 0.3)',
+            }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            開始占卜 →
+          </motion.button>
+        </motion.div>
+      )}
+
+      {/* Spread Selection Step */}
+      {step === 'spread' && (
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="relative z-10 px-6 mb-8"
+          className="relative z-10 px-6 pb-12"
         >
-          <div className="flex gap-3 overflow-x-auto pb-4">
+          <div className="flex gap-3 overflow-x-auto pb-4 justify-center">
             {spreads.map((s) => (
               <motion.button
                 key={s.id}
                 onClick={() => setSpread(s.id)}
-                className={`flex-shrink-0 p-4 rounded-2xl text-left transition-all ${
+                className={`flex-shrink-0 p-5 rounded-2xl text-center transition-all min-w-[140px] ${
                   spread === s.id ? 'border-2' : 'border border-white/5'
                 }`}
                 style={{
@@ -411,7 +477,7 @@ const TarotApp = () => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
-                <span className="text-2xl block mb-1">{s.icon}</span>
+                <span className="text-3xl block mb-2">{s.icon}</span>
                 <span className={`text-sm font-medium block ${
                   spread === s.id ? 'text-amber-400' : 'text-gray-300'
                 }`}>
@@ -421,32 +487,111 @@ const TarotApp = () => {
               </motion.button>
             ))}
           </div>
+          <motion.button
+            onClick={handleNext}
+            className="w-full max-w-md mx-auto mt-8 py-4 rounded-2xl font-bold text-lg block"
+            style={{
+              background: THEME.gradients.gold,
+              boxShadow: '0 10px 30px rgba(245, 158, 11, 0.3)',
+            }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            下一步 →
+          </motion.button>
         </motion.div>
       )}
 
-      {/* Card Area */}
-      <div className="relative z-10 flex justify-center gap-4 px-6 py-8">
-        {step === 'intro' ? (
+      {/* Question Step */}
+      {step === 'question' && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="relative z-10 px-6 pb-12"
+        >
+          <div className="max-w-md mx-auto">
+            <textarea
+              value={question}
+              onChange={(e) => setQuestion(e.target.value.slice(0, 200))}
+              placeholder={language === 'zh-TW' ? '請專注於你的問題...\n例如：我的事業發展如何？' : 'Focus on your question...'}
+              className="w-full p-5 rounded-2xl bg-white/5 border border-white/10 text-white placeholder-gray-500 resize-none"
+              style={{ background: 'rgba(255,255,255,0.02)' }}
+              rows={5}
+            />
+            <div className="text-right text-xs text-gray-500 mt-2">
+              {question.length}/200
+            </div>
+            <motion.button
+              onClick={handleDraw}
+              className="w-full mt-8 py-4 rounded-2xl font-bold text-lg"
+              style={{
+                background: THEME.gradients.gold,
+                boxShadow: '0 10px 30px rgba(245, 158, 11, 0.3)',
+              }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              🔮 開始抽牌
+            </motion.button>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Drawing Step */}
+      {step === 'drawing' && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="relative z-10 flex flex-col items-center justify-center py-16"
+        >
+          <div className="text-8xl mb-8 animate-pulse">✦</div>
+          <p className="text-amber-400 text-lg mb-4">
+            {language === 'zh-TW' ? '宇宙能量正在匯聚...' : 'Universe energy is gathering...'}
+          </p>
+          <div className="flex gap-3">
+            {[0, 1, 2].map((i) => (
+              <motion.div
+                key={i}
+                className="w-20 h-32 rounded-xl border-2 border-amber-500/30"
+                animate={{ 
+                  scale: [1, 1.1, 1],
+                  opacity: [0.5, 1, 0.5]
+                }}
+                transition={{ 
+                  duration: 1,
+                  repeat: Infinity,
+                  delay: i * 0.2
+                }}
+              />
+            ))}
+          </div>
+        </motion.div>
+      )}
+
+      {/* Card Area - Only show in spread/result */}
+      {step === 'spread' && (
+        <div className="relative z-10 flex justify-center gap-4 px-6 py-4">
           <motion.button
-            onClick={handleDraw}
-            disabled={isDrawing}
             className="w-40 h-56 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center gap-3"
             style={{
               borderColor: 'rgba(139, 92, 246, 0.3)',
               background: 'rgba(139, 92, 246, 0.05)',
             }}
             whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
           >
-            <span className={`text-4xl ${isDrawing ? 'animate-spin' : ''}`}>
-              {isDrawing ? '✦' : '🔮'}
-            </span>
-            <span className="text-sm text-gray-400">
-              {isDrawing ? '宇宙能量匯聚中...' : '開始占卜'}
-            </span>
+            <span className="text-4xl">🔮</span>
+            <span className="text-sm text-gray-400">預覽牌陣</span>
           </motion.button>
-        ) : (
-          <AnimatePresence>
+        </div>
+      )}
+
+      {/* Result Step */}
+      {step === 'result' && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <div className="relative z-10 flex justify-center gap-4 px-6 py-8">
             {cards.map((card, i) => (
               <TarotCard3D
                 key={i}
@@ -456,74 +601,21 @@ const TarotApp = () => {
                 delay={i * 0.3}
               />
             ))}
-          </AnimatePresence>
-        )}
-      </div>
-
-      {/* Question Input */}
-      {step === 'intro' && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="relative z-10 px-6"
-        >
-          <textarea
-            value={question}
-            onChange={(e) => setQuestion(e.target.value.slice(0, 200))}
-            placeholder={language === 'zh-TW' ? '請專注於你的問題...' : 'Focus on your question...'}
-            className="w-full p-4 rounded-2xl bg-white/5 border border-white/10 text-white placeholder-gray-500 resize-none"
-            style={{ background: 'rgba(255,255,255,0.02)' }}
-            rows={3}
-          />
-          <div className="text-right text-xs text-gray-500 mt-1">
-            {question.length}/200
           </div>
-        </motion.div>
-      )}
-
-      {/* Action Button */}
-      {step === 'intro' && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
-          className="relative z-10 px-6 pb-12"
-        >
-          <motion.button
-            onClick={handleDraw}
-            disabled={isDrawing}
-            className="w-full py-4 rounded-2xl font-bold text-lg"
-            style={{
-              background: THEME.gradients.gold,
-              boxShadow: '0 10px 30px rgba(245, 158, 11, 0.3)',
-            }}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            {isDrawing ? '解讀中...' : '🔮 開始占卜'}
-          </motion.button>
-        </motion.div>
-      )}
-
-      {/* Result Actions */}
-      {step === 'result' && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="relative z-10 px-6 pb-12"
-        >
-          <motion.button
-            onClick={() => { setStep('intro'); setCards([]); }}
-            className="w-full py-4 rounded-2xl font-bold text-lg"
-            style={{
-              background: 'rgba(255,255,255,0.1)',
-              border: '1px solid rgba(255,255,255,0.1)',
-            }}
-            whileHover={{ background: 'rgba(255,255,255,0.15)' }}
-          >
-            🔄 重新占卜
-          </motion.button>
+          
+          <div className="relative z-10 px-6 pb-12">
+            <motion.button
+              onClick={() => { setStep('welcome'); setCards([]); }}
+              className="w-full max-w-md mx-auto py-4 rounded-2xl font-bold text-lg block"
+              style={{
+                background: 'rgba(255,255,255,0.1)',
+                border: '1px solid rgba(255,255,255,0.1)',
+              }}
+              whileHover={{ background: 'rgba(255,255,255,0.15)' }}
+            >
+              🔄 重新占卜
+            </motion.button>
+          </div>
         </motion.div>
       )}
 
